@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import {z} from 'zod';
 const uuidSchema = z.string().uuid();
 export class UserId{
-    private readonly value;
+    private readonly value: string;
     
     private constructor(id:string){
         this.IsValidId(id);
