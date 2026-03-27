@@ -1,4 +1,3 @@
-import { User } from "src/domain/entities/user.entity";
 import { Username } from "../../../src/domain/value-objects/username.vo";
 
 describe('Username', () =>{

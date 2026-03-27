@@ -9,7 +9,7 @@ export class UserId{
         this.value = id;
     }
 
-    private IsValidId(value:string){
+    private IsValidId(value:string): string{
         const res = uuidSchema.safeParse(value)
         if(!res.success){
             throw new Error("UUID is not valid!");

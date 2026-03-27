@@ -37,5 +37,4 @@ export class User{
     getCreatedAt(): Date{
         return this.createdAt;
     }
-    
 }

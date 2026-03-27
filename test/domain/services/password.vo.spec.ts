@@ -1,4 +1,3 @@
-import { PARAMTYPES_METADATA } from '@nestjs/common/constants';
 import {Password} from '../../../src/domain/value-objects/password.vo'
 
 describe('Password', ()=>{
