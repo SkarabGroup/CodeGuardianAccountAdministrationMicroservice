@@ -1,34 +1,33 @@
-import { randomUUID } from 'crypto';
-import {z} from 'zod';
-const uuidSchema = z.string().uuid();
-export class UserId{
-    private readonly value: string;
-    
-    private constructor(id:string){
-        this.IsValidId(id);
-        this.value = id;
-    }
+import { v4 as uuid, validate as uuidValidate } from 'uuid';
 
-    private IsValidId(value:string): string{
-        const res = uuidSchema.safeParse(value)
-        if(!res.success){
-            throw new Error("UUID is not valid!");
-        }
-        return res.data;
-    }
+export class UserId {
+  private readonly _value: string;
 
-    public equals(other:UserId): boolean{
-        return this.value === other.value;
-    }
+  private constructor(value: string) {
+    this.validate(value);
+    this._value = value;
+  }
 
-    public static create(value?:string):UserId{
-        if(!value){
-            return new UserId(randomUUID());
-        }
-        return new UserId(value);
-    }
+  public static create(value: string): UserId {
+    return new UserId(value);
+  }
 
-    public getValue():string{
-        return this.value;
+  public static generate(): UserId {
+    return new UserId(uuid());
+  }
+
+  private validate(value: string): void {
+    if (!uuidValidate(value)) {
+      throw new Error('Invalid UUID format for UserId: ' + value);
     }
+  }
+
+  public equals(other: UserId): boolean {
+    if (!(other instanceof UserId)) return false;
+    return this._value === other._value;
+  }
+
+  public get value(): string {
+    return this._value;
+  }
 }

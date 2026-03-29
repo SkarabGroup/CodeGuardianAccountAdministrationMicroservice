@@ -20,7 +20,9 @@ export class GithubId {
     }
     const pattern = /^\d{1,50}$/;
     if (!pattern.test(value)) {
-      throw new Error('GithubId must be a non-empty numeric string (max 50 digits)');
+      throw new Error(
+        'GithubId must be a non-empty numeric string (max 50 digits)',
+      );
     }
   }
 

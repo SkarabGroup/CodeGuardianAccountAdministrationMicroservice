@@ -1,7 +1,7 @@
 import { EncryptedPat } from '../../../src/domain/value-objects/encrypted-pat.vo';
 
-const VALID_ENCRYPTED = 'dGVzdGNpcGhlcnRleHRmb3J1bml0dGVzdA=='; 
-const VALID_ENCRYPTED_2 = 'YW5vdGhlcnZhbGlkYmFzZTY0c3RyaW5nIQ=='; 
+const VALID_ENCRYPTED = 'dGVzdGNpcGhlcnRleHRmb3J1bml0dGVzdA==';
+const VALID_ENCRYPTED_2 = 'YW5vdGhlcnZhbGlkYmFzZTY0c3RyaW5nIQ==';
 
 describe('EncryptedPat', () => {
   describe('create()', () => {

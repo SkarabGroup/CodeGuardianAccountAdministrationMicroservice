@@ -48,18 +48,25 @@ describe('PersonalAccessToken', () => {
   it('should compare with a non-PersonalAccessToken object as not equal', () => {
     const token = PersonalAccessToken.create(VALID_GHP);
     const fakeObject = { _value: 'ghp_123' };
-    expect(token.equals(fakeObject as unknown as PersonalAccessToken)).toBe(false);
+    expect(token.equals(fakeObject as unknown as PersonalAccessToken)).toBe(
+      false,
+    );
   });
 
   it('should throw an error when the pat is invalid', () => {
     expect(() => PersonalAccessToken.create('github_pat_aaaaaaaaa')).toThrow(
       'PAT has an invalid format',
     );
-    expect(() => PersonalAccessToken.create('ghp_aaaaaaaaaaaaaaaaaaaaa')).toThrow(
-      'PAT has an invalid format',
-    );
-    expect(() => PersonalAccessToken.create('ghp_#aaaaaaaaaaaaaaaaaaa')).toThrow(
-      'PAT has an invalid format',
-    );
+    expect(() =>
+      PersonalAccessToken.create('ghp_aaaaaaaaaaaaaaaaaaaaa'),
+    ).toThrow('PAT has an invalid format');
+    expect(() =>
+      PersonalAccessToken.create('ghp_#aaaaaaaaaaaaaaaaaaa'),
+    ).toThrow('PAT has an invalid format');
+  });
+
+  it('should return the correct value', () => {
+    const token = PersonalAccessToken.create(VALID_GHP);
+    expect(token.value).toBe(VALID_GHP);
   });
 });

@@ -1,34 +1,42 @@
-import {z} from 'zod'
-const passwordSchema = z.string().min(8).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/);
+export class Password {
+  private readonly _value: string;
 
-export class Password{
-    private readonly value: string;
+  private constructor(value: string) {
+    this.validate(value);
+    this._value = value;
+  }
 
-    private constructor(password:string){
-        this.isValidPwd(password);
-        this.value = password;
-    }
+  public static create(value: string): Password {
+    return new Password(value);
+  }
 
-    private isValidPwd(password: string): string{
-        const result = passwordSchema.safeParse(password);
-        if(!result.success){
-            throw new Error("Password is not valid!");
-        }
-        return result.data;
+  private validate(value: string): void {
+    if (!value || value.trim().length === 0) {
+      throw new Error('Password cannot be null, empty, or blank');
     }
+    if (value.length < 8) {
+      throw new Error('Password is not valid');
+    }
+    if (!/[A-Z]/.test(value)) {
+      throw new Error('Password is not valid');
+    }
+    if (!/[a-z]/.test(value)) {
+      throw new Error('Password is not valid');
+    }
+    if (!/[0-9]/.test(value)) {
+      throw new Error('Password is not valid');
+    }
+    if (!/[^A-Za-z0-9]/.test(value)) {
+      throw new Error('Password is not valid');
+    }
+  }
 
-    public static create(value:string): Password{
-        if(!value){
-            throw new Error("Unable to create Password!");
-        }
-        return new Password(value);
-    }
-        
-    public equals(other:Password):boolean{
-        return this.value === other.value;
-    }
+  public equals(other: Password): boolean {
+    if (!(other instanceof Password)) return false;
+    return this._value === other._value;
+  }
 
-    public getValue():string{
-        return this.value;
-    }
+  public get value(): string {
+    return this._value;
+  }
 }

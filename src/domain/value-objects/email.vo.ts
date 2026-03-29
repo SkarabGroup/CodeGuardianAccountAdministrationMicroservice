@@ -1,34 +1,32 @@
-import {z} from 'zod'
+export class Email {
+  private readonly _value: string;
 
-const emailSchema = z.string().email().toLowerCase().trim();
+  private constructor(value: string) {
+    this._value = this.validate(value);
+  }
 
-export class Email{
-    private readonly value: string;
+  public static create(value: string): Email {
+    return new Email(value);
+  }
 
-    private constructor(email:string){
-        this.value = this.isValidEmail(email);
+  private validate(value: string): string {
+    if (!value || value.trim().length === 0) {
+      throw new Error('Email cannot be null, empty, or blank');
     }
-
-    private isValidEmail(value:string): string{
-        const res = emailSchema.safeParse(value);
-        if(!res.success){
-            throw new Error("Email is not valid!");
-        }
-        return res.data;
-    }    
-    
-    public equals(other:Email):boolean{
-        return this.value === other.value;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const normalized = value.toLowerCase().trim();
+    if (!emailPattern.test(normalized)) {
+      throw new Error('Email is not valid');
     }
+    return normalized;
+  }
 
-    public static create(value:string): Email{
-        if(!value){
-            throw new Error("Unable to create an Email!");
-        }
-        return new Email(value);
-    }
+  public equals(other: Email): boolean {
+    if (!(other instanceof Email)) return false;
+    return this._value === other._value;
+  }
 
-    public getValue(): string{
-        return this.value;
-    }
+  public get value(): string {
+    return this._value;
+  }
 }

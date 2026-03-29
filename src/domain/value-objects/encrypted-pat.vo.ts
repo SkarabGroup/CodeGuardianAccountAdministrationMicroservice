@@ -23,7 +23,9 @@ export class EncryptedPat {
       throw new Error('EncryptedPat must be a valid base64-encoded string');
     }
     if (value.length < 32) {
-      throw new Error('EncryptedPat is too short to be a valid encrypted token');
+      throw new Error(
+        'EncryptedPat is too short to be a valid encrypted token',
+      );
     }
   }
 
