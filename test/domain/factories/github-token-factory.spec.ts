@@ -35,6 +35,8 @@ describe('GithubTokenFactory', () => {
     });
 
     it('should call encryptText with the plain PAT value', async () => {
+      const spy = jest.spyOn(encryptorMock, 'encryptText');
+
       await factory.createToken(
         validUserId,
         validGithubId,
@@ -42,19 +44,29 @@ describe('GithubTokenFactory', () => {
         encryptorMock,
       );
 
-      expect(encryptorMock.encryptText).toHaveBeenCalledTimes(1);
-      expect(encryptorMock.encryptText).toHaveBeenCalledWith(validPat);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(validPat);
     });
 
     it('should throw if userId is not a valid UUID', async () => {
       await expect(
-        factory.createToken('not-a-uuid', validGithubId, validPat, encryptorMock),
+        factory.createToken(
+          'not-a-uuid',
+          validGithubId,
+          validPat,
+          encryptorMock,
+        ),
       ).rejects.toThrow();
     });
 
     it('should throw if githubId is not numeric', async () => {
       await expect(
-        factory.createToken(validUserId, 'not-numeric', validPat, encryptorMock),
+        factory.createToken(
+          validUserId,
+          'not-numeric',
+          validPat,
+          encryptorMock,
+        ),
       ).rejects.toThrow();
     });
 
@@ -66,7 +78,12 @@ describe('GithubTokenFactory', () => {
 
     it('should throw if PAT format is invalid', async () => {
       await expect(
-        factory.createToken(validUserId, validGithubId, 'invalid-pat', encryptorMock),
+        factory.createToken(
+          validUserId,
+          validGithubId,
+          'invalid-pat',
+          encryptorMock,
+        ),
       ).rejects.toThrow('PAT has an invalid format');
     });
 
@@ -77,11 +94,18 @@ describe('GithubTokenFactory', () => {
     });
 
     it('should not call encryptText if validation fails', async () => {
+      const spy = jest.spyOn(encryptorMock, 'encryptText');
+
       await expect(
-        factory.createToken(validUserId, validGithubId, 'invalid-pat', encryptorMock),
+        factory.createToken(
+          validUserId,
+          validGithubId,
+          'invalid-pat',
+          encryptorMock,
+        ),
       ).rejects.toThrow();
 
-      expect(encryptorMock.encryptText).not.toHaveBeenCalled();
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('should support github_pat_ format as valid PAT', async () => {
