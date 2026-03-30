@@ -1,9 +1,11 @@
+import { Injectable } from '@nestjs/common';
 import { GithubTokenDTO } from '../../application/DTOs/github-token-dto.dto';
 import { IEncryptTextPort } from '../../application/ports/i-encrypt-text-port.port';
 import { UserId } from '../value-objects/user-id.vo';
 import { GithubId } from '../value-objects/github-id.vo';
 import { PersonalAccessToken } from '../value-objects/personal-access-token.vo';
 
+@Injectable()
 export class GithubTokenFactory {
   async createToken(
     userId: string,
