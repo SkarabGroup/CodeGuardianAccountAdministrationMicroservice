@@ -24,7 +24,7 @@ describe('BcryptService', () => {
       const plainText = 'SuperSecretPassword!';
       const expectedHash = '$2b$10$dummyHashString...';
       (bcrypt.hash as jest.Mock).mockResolvedValue(expectedHash);
-      
+
       const result = await service.hash(plainText);
 
       expect(bcrypt.hash).toHaveBeenCalledWith(plainText, 10);

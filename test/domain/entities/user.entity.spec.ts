@@ -110,8 +110,8 @@ describe('User Entity', () => {
       expect(user.getCreatedAt()).toEqual(createdAt);
     });
   });
-  describe('equals()', ()=>{
-    it('dovrebbe restituire true per due utenti con stesso userId', () =>{
+  describe('equals()', () => {
+    it('dovrebbe restituire true per due utenti con stesso userId', () => {
       const userId = UserId.create(uuid());
       const userA = User.reconstitute(
         userId,
@@ -128,11 +128,11 @@ describe('User Entity', () => {
         new Date(),
       );
       expect(userA.equals(userB)).toBe(true);
-    }); 
-    it('dovrebbe restituire false per due utenti con userId diversi', () =>{
+    });
+    it('dovrebbe restituire false per due utenti con userId diversi', () => {
       const userA = User.create(email, passwordHash);
       const userB = User.create(email, passwordHash);
       expect(userA.equals(userB)).toBe(false);
-    });     
+    });
   });
 });
