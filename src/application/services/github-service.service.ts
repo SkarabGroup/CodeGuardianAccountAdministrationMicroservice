@@ -7,6 +7,8 @@ import type { IFindTokenByUserIdPort } from '../ports/i-find-token-by-user-id-po
 import type { IDeleteTokenPort } from '../ports/i-delete-token-port.port';
 import type { IEncryptTextPort } from '../ports/i-encrypt-text-port.port';
 import { GithubTokenFactory } from '../../domain/factories/github-token-factory.factory';
+import { AssociatePatCommand } from '../commands/associate-pat-command.command';
+import { RemovePatCommand } from '../commands/remove-pat-command.command';
 
 @Injectable()
 export class GitHubService implements IAssociatePatUseCase, IRemovePatUseCase {
@@ -19,7 +21,8 @@ export class GitHubService implements IAssociatePatUseCase, IRemovePatUseCase {
     private readonly tokenFactory: GithubTokenFactory,
   ) {}
 
-  async associatePat(userId: string, pat: string): Promise<void> {
+  async associatePat(command: AssociatePatCommand): Promise<void> {
+    const { userId, pat } = command;
     const profile = await this.githubClientPort.validateAndGetProfile(pat);
 
     const existingToken = await this.findTokenPort.findByUserId(userId);
@@ -37,7 +40,8 @@ export class GitHubService implements IAssociatePatUseCase, IRemovePatUseCase {
     await this.saveTokenPort.saveToken(tokenDTO);
   }
 
-  async removePat(userId: string): Promise<void> {
+  async removePat(command: RemovePatCommand): Promise<void> {
+    const { userId } = command;
     const existingToken = await this.findTokenPort.findByUserId(userId);
     if (!existingToken) {
       throw new Error(`No GitHub token found for user ${userId}`);

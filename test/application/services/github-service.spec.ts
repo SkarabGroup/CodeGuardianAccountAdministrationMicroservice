@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { GitHubService } from '../../../src/application/services/github-service.service';
+import { AssociatePatCommand } from '../../../src/application/commands/associate-pat-command.command';
+import { RemovePatCommand } from '../../../src/application/commands/remove-pat-command.command';
 import { IGithubClientPort } from '../../../src/application/ports/i-github-client-port.port';
 import { ISaveTokenPort } from '../../../src/application/ports/i-save-token-port.port';
 import { IFindTokenByUserIdPort } from '../../../src/application/ports/i-find-token-by-user-id-port.port';
@@ -8,7 +10,7 @@ import { IEncryptTextPort } from '../../../src/application/ports/i-encrypt-text-
 import { GithubTokenFactory } from '../../../src/domain/factories/github-token-factory.factory';
 import { GithubProfileDTO } from '../../../src/application/DTOs/github-profile-dto.dto';
 import { GithubTokenDTO } from '../../../src/application/DTOs/github-token-dto.dto';
-import { v4 as uuid } from 'uuid';
+import { v7 as uuid } from 'uuid';
 
 describe('GitHubService', () => {
   let service: GitHubService;
@@ -67,7 +69,9 @@ describe('GitHubService', () => {
     it('should validate the PAT against GitHub API', async () => {
       const spy = jest.spyOn(githubClientPort, 'validateAndGetProfile');
 
-      await service.associatePat(validUserId, validPat);
+      await service.associatePat(
+        new AssociatePatCommand(validUserId, validPat),
+      );
 
       expect(spy).toHaveBeenCalledTimes(1);
       expect(spy).toHaveBeenCalledWith(validPat);
@@ -76,7 +80,9 @@ describe('GitHubService', () => {
     it('should save the token if no existing token is found', async () => {
       findTokenPort.findByUserId.mockResolvedValue(null);
 
-      await service.associatePat(validUserId, validPat);
+      await service.associatePat(
+        new AssociatePatCommand(validUserId, validPat),
+      );
 
       expect(deleteTokenPort.deleteToken).not.toHaveBeenCalled();
       expect(tokenFactory.createToken).toHaveBeenCalledWith(
@@ -91,14 +97,18 @@ describe('GitHubService', () => {
     it('should delete existing token before saving a new one', async () => {
       findTokenPort.findByUserId.mockResolvedValue(fakeTokenDTO);
 
-      await service.associatePat(validUserId, validPat);
+      await service.associatePat(
+        new AssociatePatCommand(validUserId, validPat),
+      );
 
       expect(deleteTokenPort.deleteToken).toHaveBeenCalledWith(validUserId);
       expect(saveTokenPort.saveToken).toHaveBeenCalledWith(fakeTokenDTO);
     });
 
     it('should call createToken with the githubId from the profile', async () => {
-      await service.associatePat(validUserId, validPat);
+      await service.associatePat(
+        new AssociatePatCommand(validUserId, validPat),
+      );
 
       expect(tokenFactory.createToken).toHaveBeenCalledWith(
         validUserId,
@@ -113,9 +123,9 @@ describe('GitHubService', () => {
         new Error('Invalid PAT'),
       );
 
-      await expect(service.associatePat(validUserId, validPat)).rejects.toThrow(
-        'Invalid PAT',
-      );
+      await expect(
+        service.associatePat(new AssociatePatCommand(validUserId, validPat)),
+      ).rejects.toThrow('Invalid PAT');
     });
 
     it('should not save token if GitHub API validation fails', async () => {
@@ -124,7 +134,7 @@ describe('GitHubService', () => {
       );
 
       await expect(
-        service.associatePat(validUserId, validPat),
+        service.associatePat(new AssociatePatCommand(validUserId, validPat)),
       ).rejects.toThrow();
 
       expect(saveTokenPort.saveToken).not.toHaveBeenCalled();
@@ -135,9 +145,9 @@ describe('GitHubService', () => {
         new Error('Encryption failed'),
       );
 
-      await expect(service.associatePat(validUserId, validPat)).rejects.toThrow(
-        'Encryption failed',
-      );
+      await expect(
+        service.associatePat(new AssociatePatCommand(validUserId, validPat)),
+      ).rejects.toThrow('Encryption failed');
 
       expect(saveTokenPort.saveToken).not.toHaveBeenCalled();
     });
@@ -146,9 +156,9 @@ describe('GitHubService', () => {
       findTokenPort.findByUserId.mockResolvedValue(fakeTokenDTO);
       deleteTokenPort.deleteToken.mockRejectedValue(new Error('DB error'));
 
-      await expect(service.associatePat(validUserId, validPat)).rejects.toThrow(
-        'DB error',
-      );
+      await expect(
+        service.associatePat(new AssociatePatCommand(validUserId, validPat)),
+      ).rejects.toThrow('DB error');
 
       expect(saveTokenPort.saveToken).not.toHaveBeenCalled();
     });
@@ -158,7 +168,7 @@ describe('GitHubService', () => {
     it('should delete the token if it exists', async () => {
       findTokenPort.findByUserId.mockResolvedValue(fakeTokenDTO);
 
-      await service.removePat(validUserId);
+      await service.removePat(new RemovePatCommand(validUserId));
 
       expect(deleteTokenPort.deleteToken).toHaveBeenCalledWith(validUserId);
     });
@@ -166,15 +176,17 @@ describe('GitHubService', () => {
     it('should throw if no token is found for the user', async () => {
       findTokenPort.findByUserId.mockResolvedValue(null);
 
-      await expect(service.removePat(validUserId)).rejects.toThrow(
-        `No GitHub token found for user ${validUserId}`,
-      );
+      await expect(
+        service.removePat(new RemovePatCommand(validUserId)),
+      ).rejects.toThrow(`No GitHub token found for user ${validUserId}`);
     });
 
     it('should not call deleteToken if no token is found', async () => {
       findTokenPort.findByUserId.mockResolvedValue(null);
 
-      await expect(service.removePat(validUserId)).rejects.toThrow();
+      await expect(
+        service.removePat(new RemovePatCommand(validUserId)),
+      ).rejects.toThrow();
 
       expect(deleteTokenPort.deleteToken).not.toHaveBeenCalled();
     });
@@ -183,7 +195,9 @@ describe('GitHubService', () => {
       findTokenPort.findByUserId.mockResolvedValue(fakeTokenDTO);
       deleteTokenPort.deleteToken.mockRejectedValue(new Error('DB error'));
 
-      await expect(service.removePat(validUserId)).rejects.toThrow('DB error');
+      await expect(
+        service.removePat(new RemovePatCommand(validUserId)),
+      ).rejects.toThrow('DB error');
     });
   });
 });

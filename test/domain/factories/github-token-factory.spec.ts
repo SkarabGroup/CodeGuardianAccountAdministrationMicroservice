@@ -1,7 +1,7 @@
 import { GithubTokenFactory } from '../../../src/domain/factories/github-token-factory.factory';
 import { IEncryptTextPort } from '../../../src/application/ports/i-encrypt-text-port.port';
 import { GithubTokenDTO } from '../../../src/application/DTOs/github-token-dto.dto';
-import { v4 as uuid } from 'uuid';
+import { v7 as uuid } from 'uuid';
 
 describe('GithubTokenFactory', () => {
   let factory: GithubTokenFactory;

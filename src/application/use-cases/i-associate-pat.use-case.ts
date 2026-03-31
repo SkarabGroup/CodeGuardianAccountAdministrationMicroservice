@@ -1,3 +1,5 @@
+import { AssociatePatCommand } from '../commands/associate-pat-command.command';
+
 export interface IAssociatePatUseCase {
-  associatePat(userId: string, pat: string): Promise<void>;
+  associatePat(command: AssociatePatCommand): Promise<void>;
 }

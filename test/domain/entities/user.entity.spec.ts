@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { v7 as uuid } from 'uuid';
 import { User } from '../../../src/domain/entities/user.entity';
 import { UserId } from '../../../src/domain/value-objects/user-id.vo';
 import { Email } from '../../../src/domain/value-objects/email.vo';

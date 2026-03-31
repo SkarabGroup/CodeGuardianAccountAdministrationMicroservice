@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { v7 as uuid } from 'uuid';
 import { GithubToken } from '../../../src/domain/entities/github-token.entity';
 import { UserId } from '../../../src/domain/value-objects/user-id.vo';
 import { GithubId } from '../../../src/domain/value-objects/github-id.vo';

@@ -1,3 +1,5 @@
+import { RemovePatCommand } from '../commands/remove-pat-command.command';
+
 export interface IRemovePatUseCase {
-  removePat(userId: string): Promise<void>;
+  removePat(command: RemovePatCommand): Promise<void>;
 }
