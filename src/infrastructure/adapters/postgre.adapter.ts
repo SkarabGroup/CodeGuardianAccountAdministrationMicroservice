@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Pool, QueryResult } from 'pg';
+import { Pool } from 'pg';
 import { IUserFindPort } from "../../application/ports/IUserFind.port";
 import { IUserSavePort } from "../../application/ports/IUserSave.port";
 import { User } from "../../domain/entities/user.entity";
