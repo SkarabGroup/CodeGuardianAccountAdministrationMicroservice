@@ -1,9 +1,9 @@
 export type JwtPayload = {
-//sarebbe lo UUID
+  //sarebbe lo UUID
   sub: string;
   email: string;
   //createdat
-  iat?: number
+  iat?: number;
   //expiration;
   exp?: number;
 };

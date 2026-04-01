@@ -1,4 +1,4 @@
-import { v4 as uuid, validate as uuidValidate } from 'uuid';
+import { v7 as uuid, validate as uuidValidate } from 'uuid';
 
 export class UserId {
   private readonly _value: string;
