@@ -7,6 +7,14 @@ import { UserId } from "../../domain/value-objects/user-id.vo";
 import { Email } from "../../domain/value-objects/email.vo";
 import { PasswordHash } from "../../domain/value-objects/password-hash.vo";
 
+interface DbUserRecord {
+    id: string;
+    email: string;
+    password_hash: string;
+    created_at: Date;
+    updated_at: Date;
+}
+
 @Injectable()
 export class PostgresAdapter implements IUserFindPort, IUserSavePort { 
     private readonly pool: Pool;
