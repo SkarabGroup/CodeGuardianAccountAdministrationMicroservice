@@ -6,7 +6,7 @@ const VALID_UUID_V7 = '018f4567-e89b-72d3-a456-426614174000';
 const VALID_UUID_V7_2 = '018f4568-e89b-72d3-a456-426614174000';
 
 // Un UUID versione 4 valido
-const INVALID_UUID_V4 = '123e4567-e89b-42d3-a456-426614174000'; 
+const INVALID_UUID_V4 = '123e4567-e89b-42d3-a456-426614174000';
 
 describe('UserId', () => {
   describe('create()', () => {
@@ -39,7 +39,9 @@ describe('UserId', () => {
     });
 
     it('dovrebbe lanciare un errore se si passa un UUID invalido a generate', () => {
-      expect(() => UserId.generate('stringa-a-caso')).toThrow('UUID non valido!');
+      expect(() => UserId.generate('stringa-a-caso')).toThrow(
+        'UUID non valido!',
+      );
     });
   });
 

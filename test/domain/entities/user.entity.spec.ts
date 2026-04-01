@@ -22,14 +22,14 @@ describe('User Entity', () => {
   });
 
   describe('create()', () => {
-    it('dovrebbe creare un\'istanza valida di User', () => {
+    it("dovrebbe creare un'istanza valida di User", () => {
       // Passiamo l'ID come primo parametro!
       const user = User.create(userId, email, passwordHash);
       expect(user).toBeInstanceOf(User);
     });
 
     // Questo test è stato rinominato: l'Entità non genera più l'ID, lo riceve
-    it('dovrebbe assegnare l\'UserId fornito correttamente', () => {
+    it("dovrebbe assegnare l'UserId fornito correttamente", () => {
       const user = User.create(userId, email, passwordHash);
       expect(user.getUserId()).toBeInstanceOf(UserId);
       expect(user.getUserId().equals(userId)).toBe(true);
@@ -40,7 +40,7 @@ describe('User Entity', () => {
       expect(user.getCreatedAt()).toEqual(user.getUpdatedAt());
     });
 
-    it('dovrebbe restituire l\'email corretta', () => {
+    it("dovrebbe restituire l'email corretta", () => {
       const user = User.create(userId, email, passwordHash);
       expect(user.getEmail()).toBeInstanceOf(Email);
       expect(user.getEmail().value).toBe('test@example.com');
@@ -92,7 +92,7 @@ describe('User Entity', () => {
       );
     });
 
-    it('dovrebbe lasciare invariato createdAt dopo l\'aggiornamento della password', () => {
+    it("dovrebbe lasciare invariato createdAt dopo l'aggiornamento della password", () => {
       const user = User.create(userId, email, passwordHash);
       const createdAt = user.getCreatedAt();
       user.updatePassword(PasswordHash.create(DIFFERENT_HASH));
@@ -122,10 +122,10 @@ describe('User Entity', () => {
     it('dovrebbe restituire false per due utenti con userId diversi', () => {
       // Creiamo un secondo ID diverso appositamente per questo test
       const differentUserId = UserId.create(ANOTHER_UUID_V7);
-      
+
       const userA = User.create(userId, email, passwordHash);
       const userB = User.create(differentUserId, email, passwordHash);
-      
+
       expect(userA.equals(userB)).toBe(false);
     });
   });

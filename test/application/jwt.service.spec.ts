@@ -11,8 +11,11 @@ describe('JwtService', () => {
   // Costanti per simulare i valori del servizio
   const defaultSecret = 'dev-secret-change-me';
   const defaultExpiresIn = '2h';
-  
-  const mockPayload: JwtPayload = { sub: 'user-123', email: 'test@example.com' };
+
+  const mockPayload: JwtPayload = {
+    sub: 'user-123',
+    email: 'test@example.com',
+  };
   const mockToken = 'mocked.jwt.token.string';
 
   beforeEach(async () => {
@@ -35,11 +38,9 @@ describe('JwtService', () => {
 
       const result = service.generateToken(mockPayload);
 
-      expect(jwt.sign).toHaveBeenCalledWith(
-        mockPayload,
-        defaultSecret,
-        { expiresIn: defaultExpiresIn }
-      );
+      expect(jwt.sign).toHaveBeenCalledWith(mockPayload, defaultSecret, {
+        expiresIn: defaultExpiresIn,
+      });
       expect(result).toBe(mockToken);
     });
   });
@@ -51,11 +52,9 @@ describe('JwtService', () => {
 
       const result = service.generateRefreshToken(mockPayload);
 
-      expect(jwt.sign).toHaveBeenCalledWith(
-        mockPayload,
-        defaultSecret,
-        { expiresIn: refreshExpiresIn }
-      );
+      expect(jwt.sign).toHaveBeenCalledWith(mockPayload, defaultSecret, {
+        expiresIn: refreshExpiresIn,
+      });
       expect(result).toBe(mockToken);
     });
   });

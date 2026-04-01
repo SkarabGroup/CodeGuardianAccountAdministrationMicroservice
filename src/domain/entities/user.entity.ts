@@ -24,7 +24,11 @@ export class User {
   }
 
   /* Usato quando si registra un nuovo utente */
-  public static create(id: UserId,email: Email, passwordHash: PasswordHash): User {
+  public static create(
+    id: UserId,
+    email: Email,
+    passwordHash: PasswordHash,
+  ): User {
     const now = new Date();
     return new User(id, email, passwordHash, now, now);
   }

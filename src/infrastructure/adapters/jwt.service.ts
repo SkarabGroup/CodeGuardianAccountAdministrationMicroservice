@@ -5,14 +5,14 @@ import { ITokenProviderPort } from '../../application/ports/ITokenProvider.port'
 import { IVerifyTokenPort } from 'src/application/ports/IVerifyToken.port';
 
 @Injectable()
-export class JwtService implements ITokenProviderPort , IVerifyTokenPort{
+export class JwtService implements ITokenProviderPort, IVerifyTokenPort {
   private readonly secret = process.env.JWT_SECRET ?? 'dev-secret-change-me';
   private readonly expiresIn = '2h';
- 
+
   generateToken(payload: JwtPayload): string {
     return jwt.sign(payload, this.secret, { expiresIn: this.expiresIn });
   }
-  
+
   generateRefreshToken(payload: JwtPayload): string {
     return jwt.sign(payload, this.secret, { expiresIn: '7d' });
   }
