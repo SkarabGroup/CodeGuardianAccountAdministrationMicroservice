@@ -1,14 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
-import { JwtPayload } from '../../DTOs/jwt-payload.type';
+import { JwtPayload } from '../../application/DTOs/jwt-payload.type';
+import { ITokenProviderPort } from '../../application/ports/ITokenProvider.port';
+import { IVerifyTokenPort } from 'src/application/ports/IVerifyToken.port';
 
 @Injectable()
-export class JwtService {
+export class JwtService implements ITokenProviderPort, IVerifyTokenPort {
   private readonly secret = process.env.JWT_SECRET ?? 'dev-secret-change-me';
   private readonly expiresIn = '2h';
 
   generateToken(payload: JwtPayload): string {
     return jwt.sign(payload, this.secret, { expiresIn: this.expiresIn });
+  }
+
+  generateRefreshToken(payload: JwtPayload): string {
+    return jwt.sign(payload, this.secret, { expiresIn: '7d' });
   }
 
   verifyToken(token: string): JwtPayload | null {

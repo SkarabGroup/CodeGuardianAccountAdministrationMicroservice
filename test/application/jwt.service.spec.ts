@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JwtService } from '../../src/application/services/helper/jwt.service'; // Controlla che il path sia corretto
+import { JwtService } from '../../src/infrastructure/adapters/jwt.service'; // Controlla che il path sia corretto
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from '../../src/application/DTOs/jwt-payload.type'; // Controlla che il path sia corretto
 
@@ -40,6 +40,20 @@ describe('JwtService', () => {
 
       expect(jwt.sign).toHaveBeenCalledWith(mockPayload, defaultSecret, {
         expiresIn: defaultExpiresIn,
+      });
+      expect(result).toBe(mockToken);
+    });
+  });
+
+  describe('generateRefreshToken', () => {
+    it('dovrebbe chiamare jwt.sign con expiresIn di 7 giorni e restituire il token generato', () => {
+      const refreshExpiresIn = '7d';
+      (jwt.sign as jest.Mock).mockReturnValue(mockToken);
+
+      const result = service.generateRefreshToken(mockPayload);
+
+      expect(jwt.sign).toHaveBeenCalledWith(mockPayload, defaultSecret, {
+        expiresIn: refreshExpiresIn,
       });
       expect(result).toBe(mockToken);
     });
