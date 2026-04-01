@@ -1,12 +1,22 @@
-import { PostgresAdapter } from '../../src/infrastructure/adapters/postgre.adapter'; // Assicurati che il path sia corretto
+import { PostgresAdapter } from '../../src/infrastructure/adapters/postgre.adapter'; // Controlla che il path sia giusto
 import { Pool } from 'pg';
 import { User } from '../../src/domain/entities/user.entity';
 import { UserId } from '../../src/domain/value-objects/user-id.vo';
 import { Email } from '../../src/domain/value-objects/email.vo';
 import { PasswordHash } from '../../src/domain/value-objects/password-hash.vo';
 
-// 1. Diciamo a Jest di mockare l'intera libreria 'pg'
+// 1. Definiamo anche qui l'interfaccia per far felice il linter
+interface MockUserDbRecord {
+  id: string;
+  email: string;
+  password_hash: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Creiamo il mock tipizzandolo leggermente meglio
 const queryMock = jest.fn();
+
 jest.mock('pg', () => {
   return {
     Pool: jest.fn().mockImplementation(() => ({
@@ -48,20 +58,21 @@ describe('PostgresAdapter', () => {
 
   describe('save()', () => {
     it('dovrebbe eseguire una query INSERT con i valori corretti estratti dall\'Entità', async () => {
+      // Mockiamo una risoluzione vuota per l'INSERT (che di solito non ritorna righe)
+      queryMock.mockResolvedValueOnce({ rows: [] });
+
       await adapter.save(testUser);
 
-      // Verifichiamo che la funzione query sia stata chiamata 1 volta
       expect(queryMock).toHaveBeenCalledTimes(1);
 
-      // Estraiamo gli argomenti con cui è stata chiamata
-      const [sqlQuery, values] = queryMock.mock.calls[0];
+      // 2. Diciamo a TypeScript esattamente che tipo di dati aspettarci dalla chiamata mockata
+      // Questo elimina gli errori "Unsafe assignment" o "Unsafe member access"
+      const [sqlQuery, values] = queryMock.mock.calls[0] as [string, unknown[]];
 
-      // Verifichiamo che la query contenga le parole chiave giuste
       expect(sqlQuery).toContain('INSERT INTO users');
       expect(sqlQuery).toContain('(id, email, password_hash, created_at, updated_at)');
       expect(sqlQuery).toContain('VALUES ($1, $2, $3, $4, $5)');
 
-      // Verifichiamo che i valori passati al DB siano i primitivi "spacchettati" dai VO
       expect(values).toEqual([
         validUuidV7,
         validEmailStr,
@@ -74,8 +85,8 @@ describe('PostgresAdapter', () => {
 
   describe('find()', () => {
     it('dovrebbe restituire null se l\'utente non esiste nel database', async () => {
-      // Simuliamo il comportamento di 'pg' quando la query non trova nulla (rows vuoto)
-      queryMock.mockResolvedValueOnce({ rows: [] });
+      // 3. Forziamo il tipo dell'array vuoto per rispettare l'interfaccia
+      queryMock.mockResolvedValueOnce({ rows: [] as MockUserDbRecord[] });
 
       const result = await adapter.find(validEmailStr);
 
@@ -88,26 +99,24 @@ describe('PostgresAdapter', () => {
     });
 
     it('dovrebbe ricostituire e restituire un\'Entità User se l\'utente viene trovato', async () => {
-      // Simuliamo la riga restituita dal database
-      const dbRecord = {
+      // 4. Creiamo il record finto tipizzandolo rigidamente come MockUserDbRecord
+      const dbRecord: MockUserDbRecord = {
         id: validUuidV7,
         email: validEmailStr,
         password_hash: validHashStr,
-        created_at: now.toISOString(), // Il DB spesso restituisce le date come stringhe ISO o oggetti Date
-        updated_at: now.toISOString(),
+        created_at: now,
+        updated_at: now,
       };
 
-      // Diciamo al mock di restituire il nostro record
       queryMock.mockResolvedValueOnce({ rows: [dbRecord] });
 
       const result = await adapter.find(validEmailStr);
 
       expect(queryMock).toHaveBeenCalledTimes(1);
       
-      // Verifichiamo che il risultato sia una vera istanza di User
       expect(result).toBeInstanceOf(User);
       
-      // Verifichiamo che tutti i Value Object interni siano stati popolati correttamente
+      // Essendo result tipizzato come User | null, usiamo il ? per navigare in sicurezza
       expect(result?.getUserId().value).toBe(validUuidV7);
       expect(result?.getEmail().value).toBe(validEmailStr);
       expect(result?.getPasswordHash().value).toBe(validHashStr);

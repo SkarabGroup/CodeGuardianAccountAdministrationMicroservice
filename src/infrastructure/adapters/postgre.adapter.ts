@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Pool } from 'pg';
+import { Pool, QueryResult } from 'pg';
 import { IUserFindPort } from "../../application/ports/IUserFind.port";
 import { IUserSavePort } from "../../application/ports/IUserSave.port";
 import { User } from "../../domain/entities/user.entity";
@@ -7,7 +7,8 @@ import { UserId } from "../../domain/value-objects/user-id.vo";
 import { Email } from "../../domain/value-objects/email.vo";
 import { PasswordHash } from "../../domain/value-objects/password-hash.vo";
 
-interface DbUserRecord {
+// 1. Definiamo la "forma" esatta dei dati che ci aspettiamo dal DB
+interface UserDbRecord {
     id: string;
     email: string;
     password_hash: string;
@@ -20,7 +21,6 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
     private readonly pool: Pool;
 
     constructor() {
-        //questa va cambiata in base alla configurazione del tuo database, servirà lURL del db in rds
         this.pool = new Pool({
             connectionString: process.env.DATABASE_URL || 'postgres://postgres:root@localhost:5432/miodb'
         });
@@ -45,7 +45,9 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
 
     async find(email: string): Promise<User | null> {
         const query = `SELECT * FROM users WHERE email = $1`;
-        const { rows } = await this.pool.query(query, [email]);
+        
+        // 2. Diciamo alla funzione query che restituirà un risultato composto da UserDbRecord
+        const { rows } = await this.pool.query<UserDbRecord>(query, [email]);
 
         if (rows.length === 0) {
             return null;
@@ -53,6 +55,7 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
 
         const dbRecord = rows[0];
 
+        // 3. Ora TypeScript sa che dbRecord.id è sicuramente una stringa e non si arrabbia più!
         return User.reconstitute(
             UserId.create(dbRecord.id),
             Email.create(dbRecord.email),
