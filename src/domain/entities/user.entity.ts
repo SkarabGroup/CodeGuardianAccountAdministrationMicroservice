@@ -24,9 +24,9 @@ export class User {
   }
 
   /* Usato quando si registra un nuovo utente */
-  public static create(email: Email, passwordHash: PasswordHash): User {
+  public static create(id: UserId,email: Email, passwordHash: PasswordHash): User {
     const now = new Date();
-    return new User(UserId.generate(), email, passwordHash, now, now);
+    return new User(id, email, passwordHash, now, now);
   }
 
   /* Usato quando viene letto un utente dal database */

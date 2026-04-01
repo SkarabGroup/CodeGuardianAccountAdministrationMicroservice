@@ -1,65 +1,71 @@
 import { UserId } from '../../../src/domain/value-objects/user-id.vo';
 
-const VALID_UUID = '123e4567-e89b-12d3-a456-426614174000';
-const VALID_UUID_2 = '123e4568-e89b-12d3-a456-426614174000';
+// Costanti aggiornate per essere UUID versione 7 validi
+// (Nota il '7' all'inizio del terzo blocco e la 'a' all'inizio del quarto)
+const VALID_UUID_V7 = '018f4567-e89b-72d3-a456-426614174000';
+const VALID_UUID_V7_2 = '018f4568-e89b-72d3-a456-426614174000';
+
+// Un UUID versione 4 valido
+const INVALID_UUID_V4 = '123e4567-e89b-42d3-a456-426614174000'; 
 
 describe('UserId', () => {
   describe('create()', () => {
-    it('should create a valid UserId from a well-formed UUID', () => {
-      const userId = UserId.create(VALID_UUID);
+    it('dovrebbe creare un UserId valido partendo da un UUIDv7 corretto', () => {
+      const userId = UserId.create(VALID_UUID_V7);
       expect(userId).toBeInstanceOf(UserId);
+      expect(userId.value).toBe(VALID_UUID_V7);
     });
 
-    it('should throw when the value is an empty string', () => {
-      expect(() => UserId.create('')).toThrow('Invalid UUID format for UserId');
+    it('dovrebbe lanciare un errore se si passa un UUIDv4 (versione errata)', () => {
+      expect(() => UserId.create(INVALID_UUID_V4)).toThrow('UUID non valido!');
     });
 
-    it('should throw when the value is not a valid UUID', () => {
+    it('dovrebbe lanciare un errore se il valore è una stringa vuota', () => {
+      expect(() => UserId.create('')).toThrow('UUID non valido!');
+    });
+
+    it('dovrebbe lanciare un errore se il formato non è un UUID', () => {
       expect(() =>
-        UserId.create('123e4567-e89b-12d3-a456-426614174000329r8--ca--'),
-      ).toThrow('Invalid UUID format for UserId');
+        UserId.create('018f4567-e89b-72d3-a456-426614174000329r8--ca--'),
+      ).toThrow('UUID non valido!');
     });
   });
 
   describe('generate()', () => {
-    it('should generate a valid UserId', () => {
-      const userId = UserId.generate();
+    it('dovrebbe istanziare un UserId partendo dal valore passato', () => {
+      const userId = UserId.generate(VALID_UUID_V7);
       expect(userId).toBeInstanceOf(UserId);
-      expect(userId.value).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-      );
+      expect(userId.value).toBe(VALID_UUID_V7);
     });
 
-    it('should generate unique values on each call', () => {
-      const a = UserId.generate();
-      const b = UserId.generate();
-      expect(a.equals(b)).toBe(false);
+    it('dovrebbe lanciare un errore se si passa un UUID invalido a generate', () => {
+      expect(() => UserId.generate('stringa-a-caso')).toThrow('UUID non valido!');
     });
   });
 
   describe('value', () => {
-    it('should return the stored value', () => {
-      const userId = UserId.create(VALID_UUID);
-      expect(userId.value).toBe(VALID_UUID);
+    it('dovrebbe restituire il valore primitivo memorizzato', () => {
+      const userId = UserId.create(VALID_UUID_V7);
+      expect(userId.value).toBe(VALID_UUID_V7);
     });
   });
 
   describe('equals()', () => {
-    it('should return true for two UserIds with the same value', () => {
-      const a = UserId.create(VALID_UUID);
-      const b = UserId.create(VALID_UUID);
+    it('dovrebbe restituire true confrontando due UserId con lo stesso valore', () => {
+      const a = UserId.create(VALID_UUID_V7);
+      const b = UserId.create(VALID_UUID_V7);
       expect(a.equals(b)).toBe(true);
     });
 
-    it('should return false for two UserIds with different values', () => {
-      const a = UserId.create(VALID_UUID);
-      const b = UserId.create(VALID_UUID_2);
+    it('dovrebbe restituire false confrontando due UserId con valori diversi', () => {
+      const a = UserId.create(VALID_UUID_V7);
+      const b = UserId.create(VALID_UUID_V7_2);
       expect(a.equals(b)).toBe(false);
     });
 
-    it('should return false when compared with a plain object', () => {
-      const a = UserId.create(VALID_UUID);
-      const fake = { _value: VALID_UUID } as unknown as UserId;
+    it('dovrebbe restituire false se confrontato con un oggetto semplice (non istanza)', () => {
+      const a = UserId.create(VALID_UUID_V7);
+      const fake = { _value: VALID_UUID_V7 } as unknown as UserId;
       expect(a.equals(fake)).toBe(false);
     });
   });
