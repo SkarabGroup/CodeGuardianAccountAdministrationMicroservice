@@ -1,6 +1,6 @@
 /*import { IregistrationUseCase } from "../use-cases/registration.usecase";
 import { RegistrationUserCommand } from "../commands/registration.command";
-import { AuthResponseDto } from "../../presentation/DTOs/response/responseDTO";
+import { AuthResponseDto } from "../../presentation/DTOs/response/auth-response.dto";
 import { Inject, Injectable } from "@nestjs/common";
 import type { IUserFindPort } from "../ports/IUserFind.port";
 import type { IUserSavePort } from "../ports/IUserSave.port";
