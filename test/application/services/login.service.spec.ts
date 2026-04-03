@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LoginService } from '../../../src/application/services/login.service';
 import { LoginCommand } from '../../../src/application/commands/login.command';
 import { User } from '../../../src/domain/entities/user.entity';
-import { mock } from 'node:test';
 describe('LoginService', () => {
   let service: LoginService;
 
