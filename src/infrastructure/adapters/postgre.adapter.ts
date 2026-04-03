@@ -7,7 +7,7 @@ import { UserId } from '../../domain/value-objects/user-id.vo';
 import { Email } from '../../domain/value-objects/email.vo';
 import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
 
-// 1. Definiamo la "forma" esatta dei dati che ci aspettiamo dal DB
+//forma dei dati che ci si aspetta dal db
 interface UserDbRecord {
   id: string;
   email: string;
@@ -24,6 +24,7 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
     this.pool = new Pool({
       connectionString:
         process.env.DATABASE_URL ||
+        //questa post andrà mesa in base all'ip del db
         'postgres://postgres:root@localhost:5432/miodb',
     });
   }
@@ -31,8 +32,7 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
   async save(user: User): Promise<void> {
     const query = `
             INSERT INTO users (id, email, password_hash, created_at, updated_at) 
-            VALUES ($1, $2, $3, $4, $5)
-        `;
+            VALUES ($1, $2, $3, $4, $5)`;
 
     const values = [
       user.getUserId().value,

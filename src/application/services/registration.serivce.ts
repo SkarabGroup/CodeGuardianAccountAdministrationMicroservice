@@ -1,4 +1,4 @@
-/*import { IregistrationUseCase } from "../use-cases/registration.usecase";
+import { IregistrationUseCase } from "../use-cases/registration.usecase";
 import { RegistrationUserCommand } from "../commands/registration.command";
 import { AuthResponseDto } from "../../presentation/DTOs/response/auth-response.dto";
 import { Inject, Injectable } from "@nestjs/common";
@@ -7,7 +7,6 @@ import type { IUserSavePort } from "../ports/IUserSave.port";
 import type { IHashPasswordPort } from "../ports/IHashPassword.port";
 import type { ITokenProviderPort } from "../ports/ITokenProvider.port";
 import { User } from "../../domain/entities/user.entity";
-import { AuthDto } from "../../presentation/DTOs/request/auth.dto";
 import { UserId } from "../../domain/value-objects/user-id.vo";
 import { Email } from "../../domain/value-objects/email.vo";
 import { PasswordHash } from "../../domain/value-objects/password-hash.vo";
@@ -24,8 +23,8 @@ export class RegistrationService implements IregistrationUseCase {
 
     async execute(command: RegistrationUserCommand): Promise<AuthResponseDto> {
         // 1. check su esistenza utente
-        // const existingUser = await this.userFindPort.findByEmail(command.email);
-        // if (existingUser) throw new ConflictException('Email already in use');
+        const existingUser = await this.userFindPort.find(command.email);
+        if (existingUser) throw new Error('Email already in use');
         
         // 2. hash password
         const hashedPassword = await this.hashPasswordPort.hash(command.password);
@@ -36,7 +35,6 @@ export class RegistrationService implements IregistrationUseCase {
         const userIdVO = UserId.create(generatedId);
         const emailVO = Email.create(command.email);
         const passwordHashVO = PasswordHash.create(hashedPassword);
-        //user.create(crea da solo le date, non serve passare nulla)
         const user = User.create(
             userIdVO,
             emailVO,
@@ -44,11 +42,9 @@ export class RegistrationService implements IregistrationUseCase {
         );
 
         // 4. salvataggio utente
-        // await this.userSavePort.save(user);
+        await this.userSavePort.save(user);
 
         // 5. generazione token
-        // Controlla come hai chiamato i getter sui VO. Se hai usato le properties classiche
-        // come nei test, usa `.value`, se hai usato metodi usa `.getValue()`
         const accessToken = this.tokenProviderPort.generateToken({
             sub: user.getUserId().value, 
             email: user.getEmail().value,
@@ -57,8 +53,7 @@ export class RegistrationService implements IregistrationUseCase {
         // 6. ritorno response
         const response = new AuthResponseDto();
         response.accessToken = accessToken;
-        // response.user = user.toDTO(); // Aggiungi questo se il tuo DTO lo richiede
-        
+        response.user = user.toDTO();
         return response;
     }
-}*/
+}
