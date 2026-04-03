@@ -2,7 +2,6 @@ import { User } from '../../../src/domain/entities/user.entity';
 import { UserId } from '../../../src/domain/value-objects/user-id.vo';
 import { Email } from '../../../src/domain/value-objects/email.vo';
 import { PasswordHash } from '../../../src/domain/value-objects/password-hash.vo';
-import { UserDTO } from '../../../src/application/DTOs/user.dto';
 
 const VALID_HASH = '$2b$10$' + 'a'.repeat(53);
 const DIFFERENT_HASH = '$2b$12$' + 'b'.repeat(53);

@@ -69,7 +69,7 @@ describe('RegistrationService', () =>{
             expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
             expect(mockHashPasswordPort.hash).toHaveBeenCalledWith(command.password);
             expect(mockUserSavePort.save).toHaveBeenCalledTimes(1);
-            const savedUserArgument = mockUserSavePort.save.mock.calls[0][0];
+            const savedUserArgument = mockUserSavePort.save.mock.calls[0][0] as User;
             expect(savedUserArgument).toBeInstanceOf(User);
             expect(savedUserArgument.getEmail().value).toBe(command.email);
 
@@ -83,8 +83,8 @@ describe('RegistrationService', () =>{
             expect(result.user).toEqual({
                 id: expectedUserId,
                 email: command.email,
-                createdAt: expect.any(String),
-                updatedAt: expect.any(String),   
+                createdAt: expect.any(String) as unknown as string,
+                updatedAt: expect.any(String) as unknown as string,   
             });
 
             const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;

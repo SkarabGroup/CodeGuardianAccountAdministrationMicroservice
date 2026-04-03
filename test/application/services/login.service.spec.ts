@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoginService } from '../../../src/application/services/login.service';
 import { LoginCommand } from '../../../src/application/commands/login.command';
-
+import { User } from '../../../src/domain/entities/user.entity';
+import { mock } from 'node:test';
 describe('LoginService', () => {
   let service: LoginService;
 
@@ -22,6 +23,14 @@ describe('LoginService', () => {
     generateToken: jest.fn(),
   };
 
+
+  const expectedMockDto = {
+    id: '018e4567-e89b-7abc-8def-1234567890ab',
+    email: 'test@example.com',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  };
+
   const mockUser = {
     getPasswordHash: jest.fn().mockReturnValue({ value: '$2b$10$mockedBcryptHashString' }),
     getUserId: jest.fn().mockReturnValue({ value: '018e4567-e89b-7abc-8def-1234567890ab' }),
@@ -31,7 +40,7 @@ describe('LoginService', () => {
       email: 'test@example.com',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    }),
+    }) as unknown as User,
   };
 
   beforeEach(async () => {
@@ -67,9 +76,7 @@ describe('LoginService', () => {
       // Mockiamo il compare in modo che restituisca TRUE
       mockHashComparePort.compare.mockResolvedValue(true);
       mockTokenProviderPort.generateToken.mockReturnValue(expectedToken);
-
       const result = await service.execute(command);
-
       expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
       
       // Assicuriamoci che compare riceva la password in chiaro e l'hash salvato
@@ -84,7 +91,12 @@ describe('LoginService', () => {
       });
 
       expect(result.accessToken).toBe(expectedToken);
-      expect(result.user).toEqual(mockUser.toDTO());
+      expect(result.user).toEqual({
+        id: '018e4567-e89b-7abc-8def-1234567890ab',
+        email: 'test@example.com',
+        createdAt: expect.any(String) as unknown as string,
+        updatedAt: expect.any(String) as unknown as string,
+      });
     });
 
     it('dovrebbe lanciare Errore se l\'utente non esiste', async () => {
