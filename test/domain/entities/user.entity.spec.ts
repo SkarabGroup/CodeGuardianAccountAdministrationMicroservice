@@ -2,6 +2,7 @@ import { User } from '../../../src/domain/entities/user.entity';
 import { UserId } from '../../../src/domain/value-objects/user-id.vo';
 import { Email } from '../../../src/domain/value-objects/email.vo';
 import { PasswordHash } from '../../../src/domain/value-objects/password-hash.vo';
+import { UserDTO } from '../../../src/application/DTOs/user.dto';
 
 const VALID_HASH = '$2b$10$' + 'a'.repeat(53);
 const DIFFERENT_HASH = '$2b$12$' + 'b'.repeat(53);
@@ -28,7 +29,6 @@ describe('User Entity', () => {
       expect(user).toBeInstanceOf(User);
     });
 
-    // Questo test è stato rinominato: l'Entità non genera più l'ID, lo riceve
     it("dovrebbe assegnare l'UserId fornito correttamente", () => {
       const user = User.create(userId, email, passwordHash);
       expect(user.getUserId()).toBeInstanceOf(UserId);
@@ -127,6 +127,18 @@ describe('User Entity', () => {
       const userB = User.create(differentUserId, email, passwordHash);
 
       expect(userA.equals(userB)).toBe(false);
+    });
+  });
+
+  describe('toDTO()', () =>{
+    it('devrebbe convertire lo user in un DTO valido' , () =>{
+      const user  = User.create(userId, email, passwordHash);
+      const dto = user.toDTO();
+      expect(dto).toBeInstanceOf(Object);
+      expect(dto.id).toBe(userId.value);
+      expect(dto.email).toBe(email.value);
+      expect(dto.createdAt).toBe(user.getCreatedAt().toISOString());
+      expect(dto.updatedAt).toBe(user.getUpdatedAt().toISOString());      
     });
   });
 });

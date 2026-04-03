@@ -1,0 +1,33 @@
+services:
+  # Container per il Database PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: nest_postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: account_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest_app
+    ports:
+      - "3000:3000" # Mappa la porta di Nest
+    environment:
+      # Formato: postgres://UTENTE:PASSWORD@NOME_SERVIZIO:PORTA/NOME_DB
+      DATABASE_URL: postgres://user:password@db:5432/account_db
+    depends_on:
+      - db
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules 
+
+volumes:
+  pgdata:

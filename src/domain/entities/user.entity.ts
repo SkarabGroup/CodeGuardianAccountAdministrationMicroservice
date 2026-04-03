@@ -1,6 +1,7 @@
 import { UserId } from '../value-objects/user-id.vo';
 import { Email } from '../value-objects/email.vo';
 import { PasswordHash } from '../value-objects/password-hash.vo';
+import type { UserDTO } from '../../application/DTOs/user.dto';
 
 export class User {
   private readonly _userId: UserId;
@@ -71,5 +72,14 @@ export class User {
 
   public equals(other: User): boolean {
     return other instanceof User && this._userId.equals(other._userId);
+  }
+
+  public toDTO() : UserDTO {
+    return {
+      id: this._userId.value,
+      email: this._email.value,
+      createdAt: this._createdAt.toISOString(),
+      updatedAt: this._updatedAt.toISOString(),
+    };
   }
 }
