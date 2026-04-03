@@ -24,13 +24,6 @@ describe('LoginService', () => {
   };
 
 
-  const expectedMockDto = {
-    id: '018e4567-e89b-7abc-8def-1234567890ab',
-    email: 'test@example.com',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-  };
-
   const mockUser = {
     getPasswordHash: jest.fn().mockReturnValue({ value: '$2b$10$mockedBcryptHashString' }),
     getUserId: jest.fn().mockReturnValue({ value: '018e4567-e89b-7abc-8def-1234567890ab' }),
@@ -86,8 +79,8 @@ describe('LoginService', () => {
       );
       
       expect(mockTokenProviderPort.generateToken).toHaveBeenCalledWith({
-        sub: mockUser.getUserId().value,
-        email: mockUser.getEmail().value,
+        sub: '018e4567-e89b-7abc-8def-1234567890ab',
+        email: 'test@example.com',
       });
 
       expect(result.accessToken).toBe(expectedToken);

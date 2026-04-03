@@ -69,7 +69,8 @@ describe('RegistrationService', () =>{
             expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
             expect(mockHashPasswordPort.hash).toHaveBeenCalledWith(command.password);
             expect(mockUserSavePort.save).toHaveBeenCalledTimes(1);
-            const savedUserArgument = mockUserSavePort.save.mock.calls[0][0] as User;
+            const saveCalls = mockUserSavePort.save.mock.calls as unknown[][];
+            const savedUserArgument = saveCalls[0][0] as User;            
             expect(savedUserArgument).toBeInstanceOf(User);
             expect(savedUserArgument.getEmail().value).toBe(command.email);
 
