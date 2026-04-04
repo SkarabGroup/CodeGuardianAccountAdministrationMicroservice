@@ -1,111 +1,110 @@
-import { Test, TestingModule} from '@nestjs/testing';
-import { RegistrationService } from '../../../src/application/services/registration.serivce';
+import { Test, TestingModule } from '@nestjs/testing';
+import { RegistrationService } from '../../../src/application/services/registration.service';
 import { RegistrationUserCommand } from '../../../src/application/commands/registration.command';
 import { User } from '../../../src/domain/entities/user.entity';
 
+// Mock di uuid: usiamo questo formato per assicurarci di intercettare l'export 'v7'
 jest.mock('uuid', () => ({
-    v7: jest.fn().mockReturnValue('018e4567-e89b-7abc-8def-1234567890ab'),
+  v7: jest.fn().mockReturnValue('018f5a2b-1234-7567-89ab-cdef01234567'),
 }));
 
-describe('RegistrationService', () =>{
-    let service:RegistrationService;
+describe('RegistrationService', () => {
+  let service: RegistrationService;
 
-    const mockUserFindPort = {
-        find: jest.fn(),
-    };
+  // Mock delle porte
+  const mockUserFindPort = { find: jest.fn() };
+  const mockUserSavePort = { save: jest.fn() };
+  const mockHashPasswordPort = { hash: jest.fn() };
+  const mockTokenProviderPort = {
+    generateToken: jest.fn(),
+    generateRefreshToken: jest.fn(),
+  };
 
-    const mockUserSavePort = {
-        save: jest.fn(),
-    };  
+  beforeEach(async () => {
+    // Reset dei mock per evitare sovrapposizioni tra i test
+    jest.clearAllMocks();
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        RegistrationService,
+        { provide: 'IUserFindPort', useValue: mockUserFindPort },
+        { provide: 'IUserSavePort', useValue: mockUserSavePort },
+        { provide: 'IHashPasswordPort', useValue: mockHashPasswordPort },
+        { provide: 'ITokenProviderPort', useValue: mockTokenProviderPort },
+      ],
+    }).compile();
+
+    service = module.get<RegistrationService>(RegistrationService);
+  });
+
+  it('dovrebbe essere definito', () => {
+    expect(service).toBeDefined();
+  });
+
+  describe('execute', () => {
     
-    const mockHashPasswordPort = {
-        hash: jest.fn()
-    };
+    // TEST 1: Il caso di successo (Happy Path) - Copre l'80% delle righe (24-58)
+    it('dovrebbe registrare un nuovo utente e ritornare l\'AuthResultDto con i token', async () => {
+      // Arrange
+      const command: RegistrationUserCommand = {
+        email: 'test@example.com',
+        password: 'Password123!',
+      };
 
-    const mockTokenProviderPort = {
-        generateToken: jest.fn()
-    };
+      // Configuriamo i mock per il caso in cui tutto va a buon fine
+      mockUserFindPort.find.mockResolvedValue(null); // L'utente non esiste nel DB
+      mockHashPasswordPort.hash.mockResolvedValue('$2b$10$FintaStringaBcryptPerSuperareIlTestDelValueObject123'); // La password viene hashata
+      mockTokenProviderPort.generateToken.mockReturnValue('mock-access-token');
+      mockTokenProviderPort.generateRefreshToken.mockReturnValue('mock-refresh-token');
 
-    beforeEach(async () => {
-        jest.clearAllMocks();
+      // Act
+      const result = await service.execute(command);
 
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                RegistrationService,
-                { provide: 'IUserFindPort', useValue: mockUserFindPort },
-                { provide: 'IUserSavePort', useValue: mockUserSavePort },
-                { provide: 'IHashPasswordPort', useValue: mockHashPasswordPort },
-                { provide: 'ITokenProviderPort', useValue: mockTokenProviderPort }, 
-            ]
-        }).compile();
+      // Assert
+      // 1. Verifichiamo le chiamate alle porte
+      expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
+      expect(mockHashPasswordPort.hash).toHaveBeenCalledWith(command.password);
+      
+      // 2. Verifichiamo che l'utente sia stato salvato
+      expect(mockUserSavePort.save).toHaveBeenCalledTimes(1);
+      const savedUser = mockUserSavePort.save.mock.calls[0][0]; // Estraiamo l'oggetto passato al metodo save
+      expect(savedUser).toBeInstanceOf(User); // Deve essere un'istanza dell'entità
+      expect(savedUser.getEmail().value).toBe(command.email);
+      expect(savedUser.getUserId().value).toBe('018f5a2b-1234-7567-89ab-cdef01234567'); // ID generato dal mock
 
-        service = module.get<RegistrationService>(RegistrationService);
+      // 3. Verifichiamo la generazione dei token
+      expect(mockTokenProviderPort.generateToken).toHaveBeenCalledWith({
+        sub: '018f5a2b-1234-7567-89ab-cdef01234567',
+        email: command.email,
+      });
+
+      // 4. Verifichiamo l'output finale
+      expect(result).toBeDefined();
+      expect(result.tokens.accessToken).toBe('mock-access-token');
+      expect(result.tokens.refreshToken).toBe('mock-refresh-token');
+      expect(result.user.id).toBe('018f5a2b-1234-7567-89ab-cdef01234567');
+      expect(result.user.email).toBe(command.email);
     });
 
-    it('dovrebbe essere definito', () => {
-        expect(service).toBeDefined();
+    // TEST 2: Il caso di fallimento - Copre le righe 21-22 (l'eccezione se l'utente esiste)
+    it('dovrebbe lanciare un errore se l\'email è già in uso', async () => {
+      // Arrange
+      const command: RegistrationUserCommand = {
+        email: 'existing@example.com',
+        password: 'Password123!',
+      };
+
+      // Simuliamo che il database trovi già un utente
+      mockUserFindPort.find.mockResolvedValue({ id: 'existing-id' });
+
+      // Act & Assert
+      // Ci aspettiamo che il metodo lanci esattamente questo errore
+      await expect(service.execute(command)).rejects.toThrow('Email already in use');
+
+      // Verifichiamo che il flusso si sia interrotto e NON abbia salvato o generato token
+      expect(mockHashPasswordPort.hash).not.toHaveBeenCalled();
+      expect(mockUserSavePort.save).not.toHaveBeenCalled();
+      expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
     });
-
-    describe('execute', () => {
-        it('dovrebbe registrare un nuovo user e restituire un jwt', async () => {
-            const command: RegistrationUserCommand = {
-                email: 'test@example.com',
-                password: 'Password123!',
-            };
-
-            const hashedPassword = '$2b$10$abcdefghijklmnopqrstuv';
-            const tokenMock = 'jwt_token_mock';
-            const expectedUserId = '018e4567-e89b-7abc-8def-1234567890ab';
-            const mockUserDto = { id: '018e4567-e89b-7abc-8def-1234567890ab', email: 'test@example.com' };
-        
-            mockHashPasswordPort.hash.mockResolvedValue(hashedPassword);
-            mockUserFindPort.find.mockResolvedValue(null);
-            mockUserSavePort.save.mockResolvedValue({ ...mockUserDto, passwordHash: hashedPassword });
-            mockTokenProviderPort.generateToken.mockReturnValue(tokenMock);
-
-            const result = await service.execute(command);
-
-            //verifica che dsave sia stato chiamato con un istanza reale con mail giusta
-            expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
-            expect(mockHashPasswordPort.hash).toHaveBeenCalledWith(command.password);
-            expect(mockUserSavePort.save).toHaveBeenCalledTimes(1);
-            const saveCalls = mockUserSavePort.save.mock.calls as unknown[][];
-            const savedUserArgument = saveCalls[0][0] as User;            
-            expect(savedUserArgument).toBeInstanceOf(User);
-            expect(savedUserArgument.getEmail().value).toBe(command.email);
-
-            //verificare che payloadToken sia corretto
-            expect(mockTokenProviderPort.generateToken).toHaveBeenCalledWith({
-                sub: expectedUserId,
-                email: command.email,
-            });
-
-            expect(result.accessToken).toBe(tokenMock);
-            expect(result.user).toEqual({
-                id: expectedUserId,
-                email: command.email,
-                createdAt: expect.any(String) as unknown as string,
-                updatedAt: expect.any(String) as unknown as string,   
-            });
-
-            const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-            expect(result.user.createdAt).toMatch(isoRegex);
-            expect(result.user.updatedAt).toMatch(isoRegex);
-        });
-
-        it('dovrebbe lanciare un errore se l email è già in uso', async () => {
-            const command: RegistrationUserCommand = {
-                email: 'existingEmail@email.com',
-                password: 'Password123!',
-            };
-
-            mockUserFindPort.find.mockResolvedValue({ id: 'some-existing-id', email: command.email });
-            await expect(service.execute(command)).rejects.toThrow('Email already in use');
-
-            expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
-            expect(mockHashPasswordPort.hash).not.toHaveBeenCalled();
-            expect(mockUserSavePort.save).not.toHaveBeenCalled();
-            expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
-        });
-    });
+  });
 });

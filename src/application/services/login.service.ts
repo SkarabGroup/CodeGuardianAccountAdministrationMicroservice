@@ -1,21 +1,22 @@
-import { IloginUseCase } from "../use-cases/login.usecase";
 import { LoginCommand } from "../commands/login.command";
-import { AuthResponseDto } from "../../presentation/DTOs/response/auth-response.dto";
 import { Inject, Injectable } from "@nestjs/common";
+import { AuthResultDto } from "../DTOs/auth-result.dto";
 import type { IUserFindPort } from "../ports/IUserFind.port";
-import type { IHashPasswordPort } from "../ports/IHashPassword.port";
 import type { ITokenProviderPort } from "../ports/ITokenProvider.port";
 import type { IHashComparePort } from "../ports/IHashCompare.port";
+import type { IloginUseCase } from "../use-cases/login.usecase";
+
 @Injectable()
 
 export class LoginService implements IloginUseCase {
-    @Inject('IUserFindPort') private readonly userFindPort: IUserFindPort;
-    @Inject('IHashPasswordPort') private readonly hashPasswordPort: IHashPasswordPort;
-    @Inject('ITokenProviderPort') private readonly tokenProviderPort: ITokenProviderPort;
-    @Inject('IHashComparePort') private readonly hashComparePort: IHashComparePort;
-    constructor() {}    
 
-    async execute(command: LoginCommand):  Promise<AuthResponseDto>{
+    constructor(
+        @Inject('IUserFindPort') private readonly userFindPort: IUserFindPort,
+        @Inject('ITokenProviderPort') private readonly tokenProviderPort: ITokenProviderPort,
+        @Inject('IHashComparePort') private readonly hashComparePort: IHashComparePort,
+    ) {}    
+
+    async execute(command: LoginCommand):  Promise<AuthResultDto>{
         //1. check che lo user esista
         const user = await this.userFindPort.find(command.email);
         if (!user) {throw new Error('Invalid credentials');}
@@ -35,11 +36,25 @@ export class LoginService implements IloginUseCase {
             sub: user.getUserId().value, 
             email: user.getEmail().value,
         });
+        const refreshToken = this.tokenProviderPort.generateRefreshToken({
+            sub: user.getUserId().value, 
+            email: user.getEmail().value,
+        });
 
         // 4. return rispostas
-        const response = new AuthResponseDto();
-        response.accessToken = accessToken;
-        response.user = user.toDTO();
-        return response;
+        return {
+            tokens: {
+                accessToken,
+                refreshToken,
+            },
+            user: {
+                id: user.getUserId().value,
+                email: user.getEmail().value,
+                createdAt: user.getCreatedAt().toString(),
+                updatedAt: user.getUpdatedAt().toString(),
+            }
+        };
     }
 }
+
+export const LOGIN_SERVICE = Symbol('LoginService');

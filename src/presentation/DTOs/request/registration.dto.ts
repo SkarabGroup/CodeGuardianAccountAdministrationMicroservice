@@ -1,7 +1,7 @@
 import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
-export class AuthDto {
+export class RegistrationDto {
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(8)
@@ -15,5 +15,5 @@ export class AuthDto {
   @Matches(/[^A-Za-z0-9]/, {
     message: 'Password must contain at least one special character',
   })
-  password: string;
+  password!: string;
 }

@@ -1,38 +1,26 @@
+// src/application/services/login.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoginService } from '../../../src/application/services/login.service';
 import { LoginCommand } from '../../../src/application/commands/login.command';
-import { User } from '../../../src/domain/entities/user.entity';
+
 describe('LoginService', () => {
   let service: LoginService;
 
-  // 1. Mock delle porte aggiornati
-  const mockUserFindPort = {
-    find: jest.fn(),
-  };
-  
-  const mockHashComparePort = {
-    compare: jest.fn(),
-  };
-  
-  const mockHashPasswordPort = {
-    hash: jest.fn(),
-  };
-
+  // Mock delle porte in uscita (Outbound Ports)
+  const mockUserFindPort = { find: jest.fn() };
   const mockTokenProviderPort = {
     generateToken: jest.fn(),
+    generateRefreshToken: jest.fn(),
   };
+  const mockHashComparePort = { compare: jest.fn() };
 
-
+  // Creiamo un mock fittizio dell'entità User per simulare il ritorno dal DB
   const mockUser = {
-    getPasswordHash: jest.fn().mockReturnValue({ value: '$2b$10$mockedBcryptHashString' }),
-    getUserId: jest.fn().mockReturnValue({ value: '018e4567-e89b-7abc-8def-1234567890ab' }),
-    getEmail: jest.fn().mockReturnValue({ value: 'test@example.com' }),
-    toDTO: jest.fn().mockReturnValue({
-      id: '018e4567-e89b-7abc-8def-1234567890ab',
-      email: 'test@example.com',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }) as unknown as User,
+    getUserId: () => ({ value: '123e4567-e89b-12d3-a456-426614174000' }),
+    getEmail: () => ({ value: 'test@example.com' }),
+    getPasswordHash: () => ({ value: 'hashed_password_from_db' }),
+    getCreatedAt: () => new Date('2026-01-01T00:00:00Z'),
+    getUpdatedAt: () => new Date('2026-01-01T00:00:00Z'),
   };
 
   beforeEach(async () => {
@@ -42,9 +30,8 @@ describe('LoginService', () => {
       providers: [
         LoginService,
         { provide: 'IUserFindPort', useValue: mockUserFindPort },
-        { provide: 'IHashComparePort', useValue: mockHashComparePort }, 
         { provide: 'ITokenProviderPort', useValue: mockTokenProviderPort },
-        { provide: 'IHashPasswordPort', useValue: mockHashPasswordPort },
+        { provide: 'IHashComparePort', useValue: mockHashComparePort },
       ],
     }).compile();
 
@@ -56,64 +43,52 @@ describe('LoginService', () => {
   });
 
   describe('execute', () => {
-
-    it('dovrebbe loggare l\'utente e ritornare token e DTO se le credenziali sono corrette', async () => {
-      const command: LoginCommand = {
-        email: 'test@example.com',
-        password: 'Password123!',
-      };
-      const expectedToken = 'jwt_access_token_mock';
+    it('dovrebbe eseguire il login con successo e ritornare i token', async () => {
+      // 1. Arrange
+      const command = new LoginCommand('test@example.com', 'Password123!');
 
       mockUserFindPort.find.mockResolvedValue(mockUser);
-      // Mockiamo il compare in modo che restituisca TRUE
       mockHashComparePort.compare.mockResolvedValue(true);
-      mockTokenProviderPort.generateToken.mockReturnValue(expectedToken);
+      mockTokenProviderPort.generateToken.mockReturnValue('mock-access-token');
+      mockTokenProviderPort.generateRefreshToken.mockReturnValue('mock-refresh-token');
+
+      // 2. Act
       const result = await service.execute(command);
+
+      // 3. Assert
       expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
-      
-      // Assicuriamoci che compare riceva la password in chiaro e l'hash salvato
       expect(mockHashComparePort.compare).toHaveBeenCalledWith(
-        command.password, 
-        '$2b$10$mockedBcryptHashString'
+        command.password,
+        'hashed_password_from_db',
       );
-      
       expect(mockTokenProviderPort.generateToken).toHaveBeenCalledWith({
-        sub: '018e4567-e89b-7abc-8def-1234567890ab',
+        sub: '123e4567-e89b-12d3-a456-426614174000',
         email: 'test@example.com',
       });
 
-      expect(result.accessToken).toBe(expectedToken);
-      expect(result.user).toEqual({
-        id: '018e4567-e89b-7abc-8def-1234567890ab',
-        email: 'test@example.com',
-        createdAt: expect.any(String) as unknown as string,
-        updatedAt: expect.any(String) as unknown as string,
-      });
+      expect(result.tokens.accessToken).toBe('mock-access-token');
+      expect(result.tokens.refreshToken).toBe('mock-refresh-token');
+      expect(result.user.id).toBe('123e4567-e89b-12d3-a456-426614174000');
     });
 
-    it('dovrebbe lanciare Errore se l\'utente non esiste', async () => {
-      const command: LoginCommand = {
-        email: 'notfound@example.com',
-        password: 'Password123!',
-      };
-
-      mockUserFindPort.find.mockResolvedValue(null);
+    it('dovrebbe lanciare errore se l\'utente non esiste', async () => {
+      const command = new LoginCommand('notfound@example.com', 'Password123!');
+      
+      mockUserFindPort.find.mockResolvedValue(null); // Utente non trovato
 
       await expect(service.execute(command)).rejects.toThrow('Invalid credentials');
-
+      
+      // Assicuriamoci che non provi nemmeno a comparare la password o generare token
       expect(mockHashComparePort.compare).not.toHaveBeenCalled();
       expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
     });
 
-    it('dovrebbe lanciare Errore se la password è sbagliata', async () => {
-      const command: LoginCommand = {
-        email: 'test@example.com',
-        password: 'WrongPassword!',
-      };
-      mockUserFindPort.find.mockResolvedValue(mockUser);
+    it('dovrebbe lanciare errore se la password è errata', async () => {
+      const command = new LoginCommand('test@example.com', 'WrongPassword!');
       
-      // Mockiamo il compare in modo che restituisca FALSE
-      mockHashComparePort.compare.mockResolvedValue(false);
+      mockUserFindPort.find.mockResolvedValue(mockUser);
+      mockHashComparePort.compare.mockResolvedValue(false); // Password errata
+
       await expect(service.execute(command)).rejects.toThrow('Invalid credentials');
       expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
     });

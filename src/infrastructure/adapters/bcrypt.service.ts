@@ -15,3 +15,6 @@
       return bcrypt.compare(plaintext, hash);
     }
   }
+
+export const BCRYPT_HASH_PORT = Symbol('IHashPasswordPort');
+export const BCRYPT_COMPARE_PORT = Symbol('IHashComparePort');

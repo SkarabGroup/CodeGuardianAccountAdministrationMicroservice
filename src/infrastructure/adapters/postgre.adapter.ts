@@ -6,6 +6,7 @@ import { User } from '../../domain/entities/user.entity';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import { Email } from '../../domain/value-objects/email.vo';
 import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
+import { IUserDeletePort } from 'src/application/ports/IUserDelete.port';
 
 //forma dei dati che ci si aspetta dal db
 interface UserDbRecord {
@@ -17,7 +18,7 @@ interface UserDbRecord {
 }
 
 @Injectable()
-export class PostgresAdapter implements IUserFindPort, IUserSavePort {
+export class PostgresAdapter implements IUserFindPort, IUserSavePort{
   private readonly pool: Pool;
 
   constructor() {
@@ -67,3 +68,7 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
     );
   }
 }
+
+export const POSTGRES_FIND_ADAPTER = Symbol('IUserFindPort');
+export const POSTGRES_SAVE_ADAPTER = Symbol('IUserSavePort');
+/*export const POSTGRES_DELETE_ADAPTER = Symbol('IUserDeletePort');*/

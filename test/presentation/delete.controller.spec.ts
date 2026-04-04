@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { validate } from 'class-validator';
-import { DeleteUserController } from '../../../src/presentation/controllers/delete.controller';
-import { IDeleteUseCase } from '../../../src/application/use-cases/delete.usecase';
-import { DeleteDto } from '../../../src/presentation/DTOs/request/delete.dto';
-import { DeleteCommand } from '../../../src/application/commands/delete.command';
-import { DeleteResponseDto } from '../../../src/presentation/DTOs/response/delete-response.dto';
+import { DeleteUserController } from '../../src/presentation/controllers/delete.controller';
+import { IDeleteUseCase } from '../../src/application/use-cases/delete.usecase';
+import { DeleteDto } from '../../src/presentation/DTOs/request/delete.dto';
+import { DeleteCommand } from '../../src/application/commands/delete.command';
+import { DeleteResponseDto } from '../../src/presentation/DTOs/response/delete-response.dto';
 
 describe('DeleteUserController', () => {
   let controller: DeleteUserController;

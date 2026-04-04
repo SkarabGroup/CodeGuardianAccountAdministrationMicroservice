@@ -19,3 +19,5 @@ export class DeleteService implements IDeleteUseCase {
     return response;
   }
 }
+
+export const DELETE_SERVICE = Symbol('IDeleteUseCase');

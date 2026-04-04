@@ -1,3 +1,3 @@
 export class DeleteResponseDto {
-  deleted: boolean;
+  deleted!: boolean;
 }
