@@ -67,8 +67,8 @@ describe('RegistrationService', () => {
       
       // 2. Verifichiamo che l'utente sia stato salvato
       expect(mockUserSavePort.save).toHaveBeenCalledTimes(1);
-      const savedUser = mockUserSavePort.save.mock.calls[0][0]; // Estraiamo l'oggetto passato al metodo save
-      expect(savedUser).toBeInstanceOf(User); // Deve essere un'istanza dell'entità
+      const calls = mockUserSavePort.save.mock.calls as unknown as [User][];
+      const savedUser = calls[0][0];      expect(savedUser).toBeInstanceOf(User); // Deve essere un'istanza dell'entità
       expect(savedUser.getEmail().value).toBe(command.email);
       expect(savedUser.getUserId().value).toBe('018f5a2b-1234-7567-89ab-cdef01234567'); // ID generato dal mock
 

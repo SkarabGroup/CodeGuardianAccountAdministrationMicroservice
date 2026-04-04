@@ -6,7 +6,6 @@ import { User } from '../../domain/entities/user.entity';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import { Email } from '../../domain/value-objects/email.vo';
 import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
-import { IUserDeletePort } from 'src/application/ports/IUserDelete.port';
 
 //forma dei dati che ci si aspetta dal db
 interface UserDbRecord {
