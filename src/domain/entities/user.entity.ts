@@ -74,7 +74,7 @@ export class User {
     return other instanceof User && this._userId.equals(other._userId);
   }
 
-  public toDTO() : UserDTO {
+  public toDTO(): UserDTO {
     return {
       id: this._userId.value,
       email: this._email.value,
