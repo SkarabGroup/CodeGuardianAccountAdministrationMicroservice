@@ -1,12 +1,12 @@
 import { validate } from 'class-validator';
-import { AuthDto } from '../../src/presentation/DTOs/request/auth.dto';
+import { RegistrationDto } from '../../src/presentation/DTOs/request/registration.dto';
 
-describe('AuthDto Validation', () => {
-  let dto: AuthDto;
+describe('RegistrationDto Validation', () => {
+  let dto: RegistrationDto;
 
   // Prima di ogni test, creiamo un DTO con dati validi
   beforeEach(() => {
-    dto = new AuthDto();
+    dto = new RegistrationDto();
     dto.email = 'utente@example.com';
     dto.password = 'SuperPassword123!'; // Soddisfa tutte le regole
   });

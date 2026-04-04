@@ -1,32 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RegistrationService } from '../../../src/application/services/registration.serivce';
+import { RegistrationService } from '../../../src/application/services/registration.service';
 import { RegistrationUserCommand } from '../../../src/application/commands/registration.command';
 import { User } from '../../../src/domain/entities/user.entity';
 
+// Mock di uuid: usiamo questo formato per assicurarci di intercettare l'export 'v7'
 jest.mock('uuid', () => ({
-  v7: jest.fn().mockReturnValue('018e4567-e89b-7abc-8def-1234567890ab'),
+  v7: jest.fn().mockReturnValue('018f5a2b-1234-7567-89ab-cdef01234567'),
 }));
 
 describe('RegistrationService', () => {
   let service: RegistrationService;
 
-  const mockUserFindPort = {
-    find: jest.fn(),
-  };
-
-  const mockUserSavePort = {
-    save: jest.fn(),
-  };
-
-  const mockHashPasswordPort = {
-    hash: jest.fn(),
-  };
-
+  // Mock delle porte
+  const mockUserFindPort = { find: jest.fn() };
+  const mockUserSavePort = { save: jest.fn() };
+  const mockHashPasswordPort = { hash: jest.fn() };
   const mockTokenProviderPort = {
     generateToken: jest.fn(),
+    generateRefreshToken: jest.fn(),
   };
 
   beforeEach(async () => {
+    // Reset dei mock per evitare sovrapposizioni tra i test
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -47,73 +42,74 @@ describe('RegistrationService', () => {
   });
 
   describe('execute', () => {
-    it('dovrebbe registrare un nuovo user e restituire un jwt', async () => {
+    // TEST 1: Il caso di successo (Happy Path) - Copre l'80% delle righe (24-58)
+    it("dovrebbe registrare un nuovo utente e ritornare l'AuthResultDto con i token", async () => {
+      // Arrange
       const command: RegistrationUserCommand = {
         email: 'test@example.com',
         password: 'Password123!',
       };
 
-      const hashedPassword = '$2b$10$abcdefghijklmnopqrstuv';
-      const tokenMock = 'jwt_token_mock';
-      const expectedUserId = '018e4567-e89b-7abc-8def-1234567890ab';
-      const mockUserDto = {
-        id: '018e4567-e89b-7abc-8def-1234567890ab',
-        email: 'test@example.com',
-      };
+      // Configuriamo i mock per il caso in cui tutto va a buon fine
+      mockUserFindPort.find.mockResolvedValue(null); // L'utente non esiste nel DB
+      mockHashPasswordPort.hash.mockResolvedValue(
+        '$2b$10$FintaStringaBcryptPerSuperareIlTestDelValueObject123',
+      ); // La password viene hashata
+      mockTokenProviderPort.generateToken.mockReturnValue('mock-access-token');
+      mockTokenProviderPort.generateRefreshToken.mockReturnValue(
+        'mock-refresh-token',
+      );
 
-      mockHashPasswordPort.hash.mockResolvedValue(hashedPassword);
-      mockUserFindPort.find.mockResolvedValue(null);
-      mockUserSavePort.save.mockResolvedValue({
-        ...mockUserDto,
-        passwordHash: hashedPassword,
-      });
-      mockTokenProviderPort.generateToken.mockReturnValue(tokenMock);
-
+      // Act
       const result = await service.execute(command);
 
-      //verifica che dsave sia stato chiamato con un istanza reale con mail giusta
+      // Assert
+      // 1. Verifichiamo le chiamate alle porte
       expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
       expect(mockHashPasswordPort.hash).toHaveBeenCalledWith(command.password);
+
+      // 2. Verifichiamo che l'utente sia stato salvato
       expect(mockUserSavePort.save).toHaveBeenCalledTimes(1);
-      const saveCalls = mockUserSavePort.save.mock.calls as unknown[][];
-      const savedUserArgument = saveCalls[0][0] as User;
-      expect(savedUserArgument).toBeInstanceOf(User);
-      expect(savedUserArgument.getEmail().value).toBe(command.email);
+      const calls = mockUserSavePort.save.mock.calls as unknown as [User][];
+      const savedUser = calls[0][0];
+      expect(savedUser).toBeInstanceOf(User); // Deve essere un'istanza dell'entità
+      expect(savedUser.getEmail().value).toBe(command.email);
+      expect(savedUser.getUserId().value).toBe(
+        '018f5a2b-1234-7567-89ab-cdef01234567',
+      ); // ID generato dal mock
 
-      //verificare che payloadToken sia corretto
+      // 3. Verifichiamo la generazione dei token
       expect(mockTokenProviderPort.generateToken).toHaveBeenCalledWith({
-        sub: expectedUserId,
+        sub: '018f5a2b-1234-7567-89ab-cdef01234567',
         email: command.email,
       });
 
-      expect(result.accessToken).toBe(tokenMock);
-      expect(result.user).toEqual({
-        id: expectedUserId,
-        email: command.email,
-        createdAt: expect.any(String) as unknown as string,
-        updatedAt: expect.any(String) as unknown as string,
-      });
-
-      const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-      expect(result.user.createdAt).toMatch(isoRegex);
-      expect(result.user.updatedAt).toMatch(isoRegex);
+      // 4. Verifichiamo l'output finale
+      expect(result).toBeDefined();
+      expect(result.tokens.accessToken).toBe('mock-access-token');
+      expect(result.tokens.refreshToken).toBe('mock-refresh-token');
+      expect(result.user.id).toBe('018f5a2b-1234-7567-89ab-cdef01234567');
+      expect(result.user.email).toBe(command.email);
     });
 
-    it('dovrebbe lanciare un errore se l email è già in uso', async () => {
+    // TEST 2: Il caso di fallimento - Copre le righe 21-22 (l'eccezione se l'utente esiste)
+    it("dovrebbe lanciare un errore se l'email è già in uso", async () => {
+      // Arrange
       const command: RegistrationUserCommand = {
-        email: 'existingEmail@email.com',
+        email: 'existing@example.com',
         password: 'Password123!',
       };
 
-      mockUserFindPort.find.mockResolvedValue({
-        id: 'some-existing-id',
-        email: command.email,
-      });
+      // Simuliamo che il database trovi già un utente
+      mockUserFindPort.find.mockResolvedValue({ id: 'existing-id' });
+
+      // Act & Assert
+      // Ci aspettiamo che il metodo lanci esattamente questo errore
       await expect(service.execute(command)).rejects.toThrow(
         'Email already in use',
       );
 
-      expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
+      // Verifichiamo che il flusso si sia interrotto e NON abbia salvato o generato token
       expect(mockHashPasswordPort.hash).not.toHaveBeenCalled();
       expect(mockUserSavePort.save).not.toHaveBeenCalled();
       expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();

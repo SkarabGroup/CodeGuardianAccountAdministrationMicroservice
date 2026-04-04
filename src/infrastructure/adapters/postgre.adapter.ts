@@ -67,3 +67,7 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
     );
   }
 }
+
+export const POSTGRES_FIND_ADAPTER = Symbol('IUserFindPort');
+export const POSTGRES_SAVE_ADAPTER = Symbol('IUserSavePort');
+/*export const POSTGRES_DELETE_ADAPTER = Symbol('IUserDeletePort');*/

@@ -25,3 +25,6 @@ export class JwtService implements ITokenProviderPort, IVerifyTokenPort {
     }
   }
 }
+
+export const JWT_PROVIDER = Symbol('ITokenProviderPort');
+export const JWT_VERIFIER = Symbol('IVerifyTokenPort');

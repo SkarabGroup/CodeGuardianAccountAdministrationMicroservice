@@ -1,7 +1,17 @@
-import { UserDTO } from '../../../application/DTOs/user.dto';
+import { Expose, Type } from 'class-transformer';
+export class UserResponseDto {
+  @Expose()
+  id!: string;
 
+  @Expose()
+  email!: string;
+}
 export class AuthResponseDto {
-  accessToken: string;
-  refreshToken: string;
-  user: UserDTO;
+  @Expose()
+  accessToken!: string;
+  @Expose()
+  refreshToken!: string;
+  @Expose()
+  @Type(() => UserResponseDto)
+  user!: UserResponseDto;
 }

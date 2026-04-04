@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
-import { DeleteUserController } from '../../../src/presentation/controllers/delete.controller';
-import { IDeleteUseCase } from '../../../src/application/use-cases/delete.usecase';
-import { DeleteCommand } from '../../../src/application/commands/delete.command';
-import { DeleteResponseDto } from '../../../src/presentation/DTOs/response/delete-response.dto';
-import { JwtService } from '../../../src/infrastructure/adapters/jwt.service';
+import { DeleteUserController } from '../../src/presentation/controllers/delete.controller';
+import { IDeleteUseCase } from '../../src/application/use-cases/delete.usecase';
+import { DeleteCommand } from '../../src/application/commands/delete.command';
+import { DeleteResponseDto } from '../../src/presentation/DTOs/response/delete-response.dto';
+import { JwtService } from '../../src/infrastructure/adapters/jwt.service';
 import type { Request } from 'express';
 
 describe('DeleteUserController', () => {

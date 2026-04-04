@@ -1,6 +1,6 @@
-import { AuthResponseDto } from '../../presentation/DTOs/response/auth-response.dto';
+import { AuthResultDto } from '../DTOs/auth-result.dto';
 import { RegistrationUserCommand } from '../commands/registration.command';
 
 export interface IregistrationUseCase {
-  execute(command: RegistrationUserCommand): Promise<AuthResponseDto>;
+  execute(command: RegistrationUserCommand): Promise<AuthResultDto>;
 }

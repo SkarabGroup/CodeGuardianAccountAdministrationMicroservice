@@ -1,6 +1,5 @@
 import { IregistrationUseCase } from '../use-cases/registration.usecase';
 import { RegistrationUserCommand } from '../commands/registration.command';
-import { AuthResponseDto } from '../../presentation/DTOs/response/auth-response.dto';
 import { Inject, Injectable } from '@nestjs/common';
 import type { IUserFindPort } from '../ports/IUserFind.port';
 import type { IUserSavePort } from '../ports/IUserSave.port';
@@ -11,19 +10,21 @@ import { UserId } from '../../domain/value-objects/user-id.vo';
 import { Email } from '../../domain/value-objects/email.vo';
 import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
 import { v7 as uuidv7 } from 'uuid';
+import { JwtPayload } from '../DTOs/jwt-payload.type';
+import { AuthResultDto } from '../DTOs/auth-result.dto';
 
 @Injectable()
 export class RegistrationService implements IregistrationUseCase {
-  @Inject('IUserFindPort') private readonly userFindPort: IUserFindPort;
-  @Inject('IUserSavePort') private readonly userSavePort: IUserSavePort;
-  @Inject('IHashPasswordPort')
-  private readonly hashPasswordPort: IHashPasswordPort;
-  @Inject('ITokenProviderPort')
-  private readonly tokenProviderPort: ITokenProviderPort;
+  constructor(
+    @Inject('IUserFindPort') private readonly userFindPort: IUserFindPort,
+    @Inject('IUserSavePort') private readonly userSavePort: IUserSavePort,
+    @Inject('IHashPasswordPort')
+    private readonly hashPasswordPort: IHashPasswordPort,
+    @Inject('ITokenProviderPort')
+    private readonly tokenProviderPort: ITokenProviderPort,
+  ) {}
 
-  constructor() {}
-
-  async execute(command: RegistrationUserCommand): Promise<AuthResponseDto> {
+  async execute(command: RegistrationUserCommand): Promise<AuthResultDto> {
     // 1. check su esistenza utente
     const existingUser = await this.userFindPort.find(command.email);
     if (existingUser) throw new Error('Email already in use');
@@ -43,15 +44,28 @@ export class RegistrationService implements IregistrationUseCase {
     await this.userSavePort.save(user);
 
     // 5. generazione token
-    const accessToken = this.tokenProviderPort.generateToken({
+    const jwtPayload: JwtPayload = {
       sub: user.getUserId().value,
       email: user.getEmail().value,
-    });
+    };
+    const accessToken = this.tokenProviderPort.generateToken(jwtPayload);
+    const refreshToken =
+      this.tokenProviderPort.generateRefreshToken(jwtPayload);
 
     // 6. ritorno response
-    const response = new AuthResponseDto();
-    response.accessToken = accessToken;
-    response.user = user.toDTO();
-    return response;
+    return {
+      tokens: {
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      },
+      user: {
+        id: userIdVO.value,
+        email: command.email,
+        createdAt: new Date().toString(),
+        updatedAt: new Date().toString(),
+      },
+    };
   }
 }
+
+export const REGISTRATION_SERVICE = Symbol('RegistrationService');

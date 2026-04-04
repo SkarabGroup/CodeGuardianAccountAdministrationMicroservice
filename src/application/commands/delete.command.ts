@@ -1,3 +1,3 @@
 export class DeleteCommand {
-  userToDelete: string;
+  userToDelete!: string;
 }
