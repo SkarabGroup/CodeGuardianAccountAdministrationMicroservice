@@ -129,15 +129,15 @@ describe('User Entity', () => {
     });
   });
 
-  describe('toDTO()', () =>{
-    it('devrebbe convertire lo user in un DTO valido' , () =>{
-      const user  = User.create(userId, email, passwordHash);
+  describe('toDTO()', () => {
+    it('devrebbe convertire lo user in un DTO valido', () => {
+      const user = User.create(userId, email, passwordHash);
       const dto = user.toDTO();
       expect(dto).toBeInstanceOf(Object);
       expect(dto.id).toBe(userId.value);
       expect(dto.email).toBe(email.value);
       expect(dto.createdAt).toBe(user.getCreatedAt().toISOString());
-      expect(dto.updatedAt).toBe(user.getUpdatedAt().toISOString());      
+      expect(dto.updatedAt).toBe(user.getUpdatedAt().toISOString());
     });
   });
 });
