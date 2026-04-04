@@ -61,7 +61,8 @@ describe('LoginController', () => {
       // 3. Assert: Verifichiamo che il caso d'uso sia stato chiamato con il Command corretto
       // Controlliamo che l'oggetto passato a execute sia un'istanza di LoginCommand con i dati giusti
       expect(mockLoginUseCase.execute).toHaveBeenCalledTimes(1);
-      const calledCommand = mockLoginUseCase.execute.mock.calls[0][0];
+      const calls = mockLoginUseCase.execute.mock.calls as unknown as [LoginCommand][];
+      const calledCommand = calls[0][0];      
       expect(calledCommand).toBeInstanceOf(LoginCommand);
       expect(calledCommand.email).toBe(requestDto.email);
       expect(calledCommand.password).toBe(requestDto.password);
