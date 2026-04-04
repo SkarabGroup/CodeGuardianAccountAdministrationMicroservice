@@ -17,7 +17,7 @@ interface UserDbRecord {
 }
 
 @Injectable()
-export class PostgresAdapter implements IUserFindPort, IUserSavePort{
+export class PostgresAdapter implements IUserFindPort, IUserSavePort {
   private readonly pool: Pool;
 
   constructor() {

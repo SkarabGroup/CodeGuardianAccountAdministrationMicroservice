@@ -15,7 +15,7 @@ describe('LoginRequestDto', () => {
   });
 
   describe('Validazione Email', () => {
-    it('dovrebbe fallire se l\'email è vuota', async () => {
+    it("dovrebbe fallire se l'email è vuota", async () => {
       const payload = {
         email: '',
         password: 'password123',
@@ -28,7 +28,7 @@ describe('LoginRequestDto', () => {
       expect(errors[0].constraints).toHaveProperty('isNotEmpty');
     });
 
-    it('dovrebbe fallire se l\'email non ha un formato valido', async () => {
+    it("dovrebbe fallire se l'email non ha un formato valido", async () => {
       const payload = {
         email: 'not-an-email',
         password: 'password123',

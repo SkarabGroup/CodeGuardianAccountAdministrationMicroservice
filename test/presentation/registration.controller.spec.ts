@@ -33,7 +33,7 @@ describe('RegistrationController', () => {
   });
 
   describe('register', () => {
-    it('dovrebbe mappare il DTO, eseguire il caso d\'uso e restituire l\'AuthResponseDto corretto', async () => {
+    it("dovrebbe mappare il DTO, eseguire il caso d'uso e restituire l'AuthResponseDto corretto", async () => {
       // 1. Arrange
       const requestDto: RegistrationDto = {
         email: 'newuser@example.com',
@@ -83,7 +83,9 @@ describe('RegistrationController', () => {
       mockRegistrationUseCase.execute.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(controller.register(requestDto)).rejects.toThrow('Email già in uso');
+      await expect(controller.register(requestDto)).rejects.toThrow(
+        'Email già in uso',
+      );
     });
   });
 });

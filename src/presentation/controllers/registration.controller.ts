@@ -1,7 +1,17 @@
 // src/presentation/controllers/registration.controller.ts
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+} from '@nestjs/common';
 import { RegistrationDto } from '../DTOs/request/registration.dto';
-import { AuthResponseDto, UserResponseDto } from '../DTOs/response/auth-response.dto';
+import {
+  AuthResponseDto,
+  UserResponseDto,
+} from '../DTOs/response/auth-response.dto';
 import type { IregistrationUseCase } from '../../application/use-cases/registration.usecase';
 import { RegistrationUserCommand } from '../../application/commands/registration.command';
 import { REGISTRATION_SERVICE } from '../../application/services/registration.service';
@@ -15,8 +25,9 @@ export class RegistrationController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() requestDto: RegistrationDto): Promise<AuthResponseDto> {
-    
+  async register(
+    @Body() requestDto: RegistrationDto,
+  ): Promise<AuthResponseDto> {
     // 1. INGRESSO: Mappiamo il DTO HTTP nel Command del caso d'uso
     const command: RegistrationUserCommand = {
       email: requestDto.email,
@@ -34,7 +45,7 @@ export class RegistrationController {
     const userResponse = new UserResponseDto();
     userResponse.id = result.user.id;
     userResponse.email = result.user.email;
-    
+
     response.user = userResponse;
 
     return response;

@@ -42,9 +42,8 @@ describe('RegistrationService', () => {
   });
 
   describe('execute', () => {
-    
     // TEST 1: Il caso di successo (Happy Path) - Copre l'80% delle righe (24-58)
-    it('dovrebbe registrare un nuovo utente e ritornare l\'AuthResultDto con i token', async () => {
+    it("dovrebbe registrare un nuovo utente e ritornare l'AuthResultDto con i token", async () => {
       // Arrange
       const command: RegistrationUserCommand = {
         email: 'test@example.com',
@@ -53,9 +52,13 @@ describe('RegistrationService', () => {
 
       // Configuriamo i mock per il caso in cui tutto va a buon fine
       mockUserFindPort.find.mockResolvedValue(null); // L'utente non esiste nel DB
-      mockHashPasswordPort.hash.mockResolvedValue('$2b$10$FintaStringaBcryptPerSuperareIlTestDelValueObject123'); // La password viene hashata
+      mockHashPasswordPort.hash.mockResolvedValue(
+        '$2b$10$FintaStringaBcryptPerSuperareIlTestDelValueObject123',
+      ); // La password viene hashata
       mockTokenProviderPort.generateToken.mockReturnValue('mock-access-token');
-      mockTokenProviderPort.generateRefreshToken.mockReturnValue('mock-refresh-token');
+      mockTokenProviderPort.generateRefreshToken.mockReturnValue(
+        'mock-refresh-token',
+      );
 
       // Act
       const result = await service.execute(command);
@@ -64,13 +67,16 @@ describe('RegistrationService', () => {
       // 1. Verifichiamo le chiamate alle porte
       expect(mockUserFindPort.find).toHaveBeenCalledWith(command.email);
       expect(mockHashPasswordPort.hash).toHaveBeenCalledWith(command.password);
-      
+
       // 2. Verifichiamo che l'utente sia stato salvato
       expect(mockUserSavePort.save).toHaveBeenCalledTimes(1);
       const calls = mockUserSavePort.save.mock.calls as unknown as [User][];
-      const savedUser = calls[0][0];      expect(savedUser).toBeInstanceOf(User); // Deve essere un'istanza dell'entità
+      const savedUser = calls[0][0];
+      expect(savedUser).toBeInstanceOf(User); // Deve essere un'istanza dell'entità
       expect(savedUser.getEmail().value).toBe(command.email);
-      expect(savedUser.getUserId().value).toBe('018f5a2b-1234-7567-89ab-cdef01234567'); // ID generato dal mock
+      expect(savedUser.getUserId().value).toBe(
+        '018f5a2b-1234-7567-89ab-cdef01234567',
+      ); // ID generato dal mock
 
       // 3. Verifichiamo la generazione dei token
       expect(mockTokenProviderPort.generateToken).toHaveBeenCalledWith({
@@ -87,7 +93,7 @@ describe('RegistrationService', () => {
     });
 
     // TEST 2: Il caso di fallimento - Copre le righe 21-22 (l'eccezione se l'utente esiste)
-    it('dovrebbe lanciare un errore se l\'email è già in uso', async () => {
+    it("dovrebbe lanciare un errore se l'email è già in uso", async () => {
       // Arrange
       const command: RegistrationUserCommand = {
         email: 'existing@example.com',
@@ -99,7 +105,9 @@ describe('RegistrationService', () => {
 
       // Act & Assert
       // Ci aspettiamo che il metodo lanci esattamente questo errore
-      await expect(service.execute(command)).rejects.toThrow('Email already in use');
+      await expect(service.execute(command)).rejects.toThrow(
+        'Email already in use',
+      );
 
       // Verifichiamo che il flusso si sia interrotto e NON abbia salvato o generato token
       expect(mockHashPasswordPort.hash).not.toHaveBeenCalled();

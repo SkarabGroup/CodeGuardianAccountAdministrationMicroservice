@@ -50,7 +50,9 @@ describe('LoginService', () => {
       mockUserFindPort.find.mockResolvedValue(mockUser);
       mockHashComparePort.compare.mockResolvedValue(true);
       mockTokenProviderPort.generateToken.mockReturnValue('mock-access-token');
-      mockTokenProviderPort.generateRefreshToken.mockReturnValue('mock-refresh-token');
+      mockTokenProviderPort.generateRefreshToken.mockReturnValue(
+        'mock-refresh-token',
+      );
 
       // 2. Act
       const result = await service.execute(command);
@@ -71,13 +73,15 @@ describe('LoginService', () => {
       expect(result.user.id).toBe('123e4567-e89b-12d3-a456-426614174000');
     });
 
-    it('dovrebbe lanciare errore se l\'utente non esiste', async () => {
+    it("dovrebbe lanciare errore se l'utente non esiste", async () => {
       const command = new LoginCommand('notfound@example.com', 'Password123!');
-      
+
       mockUserFindPort.find.mockResolvedValue(null); // Utente non trovato
 
-      await expect(service.execute(command)).rejects.toThrow('Invalid credentials');
-      
+      await expect(service.execute(command)).rejects.toThrow(
+        'Invalid credentials',
+      );
+
       // Assicuriamoci che non provi nemmeno a comparare la password o generare token
       expect(mockHashComparePort.compare).not.toHaveBeenCalled();
       expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
@@ -85,11 +89,13 @@ describe('LoginService', () => {
 
     it('dovrebbe lanciare errore se la password è errata', async () => {
       const command = new LoginCommand('test@example.com', 'WrongPassword!');
-      
+
       mockUserFindPort.find.mockResolvedValue(mockUser);
       mockHashComparePort.compare.mockResolvedValue(false); // Password errata
 
-      await expect(service.execute(command)).rejects.toThrow('Invalid credentials');
+      await expect(service.execute(command)).rejects.toThrow(
+        'Invalid credentials',
+      );
       expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
     });
   });

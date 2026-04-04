@@ -34,7 +34,7 @@ describe('LoginController', () => {
   });
 
   describe('login', () => {
-    it('dovrebbe mappare il DTO, eseguire il caso d\'uso e restituire l\'AuthResponseDto corretto', async () => {
+    it("dovrebbe mappare il DTO, eseguire il caso d'uso e restituire l'AuthResponseDto corretto", async () => {
       // 1. Arrange: Prepariamo i dati di input e il finto output del caso d'uso
       const requestDto: LoginRequestDto = {
         email: 'test@example.com',
@@ -61,8 +61,10 @@ describe('LoginController', () => {
       // 3. Assert: Verifichiamo che il caso d'uso sia stato chiamato con il Command corretto
       // Controlliamo che l'oggetto passato a execute sia un'istanza di LoginCommand con i dati giusti
       expect(mockLoginUseCase.execute).toHaveBeenCalledTimes(1);
-      const calls = mockLoginUseCase.execute.mock.calls as unknown as [LoginCommand][];
-      const calledCommand = calls[0][0];      
+      const calls = mockLoginUseCase.execute.mock.calls as unknown as [
+        LoginCommand,
+      ][];
+      const calledCommand = calls[0][0];
       expect(calledCommand).toBeInstanceOf(LoginCommand);
       expect(calledCommand.email).toBe(requestDto.email);
       expect(calledCommand.password).toBe(requestDto.password);
@@ -75,18 +77,20 @@ describe('LoginController', () => {
       expect(result.user.email).toBe('test@example.com');
     });
 
-    it('dovrebbe propagare le eccezioni lanciate dal caso d\'uso', async () => {
+    it("dovrebbe propagare le eccezioni lanciate dal caso d'uso", async () => {
       // Arrange
       const requestDto: LoginRequestDto = {
         email: 'test@example.com',
         password: 'WrongPassword!',
       };
-      
+
       const error = new Error('Credenziali non valide');
       mockLoginUseCase.execute.mockRejectedValue(error);
 
       // Act & Assert
-      await expect(controller.login(requestDto)).rejects.toThrow('Credenziali non valide');
+      await expect(controller.login(requestDto)).rejects.toThrow(
+        'Credenziali non valide',
+      );
     });
   });
 });

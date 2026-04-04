@@ -11,10 +11,7 @@ import { LOGIN_SERVICE } from '../../application/services/login.service';
 import { REGISTRATION_SERVICE } from '../../application/services/registration.service';
 
 @Module({
-  controllers: [
-    RegistrationController, 
-    LoginController
-  ],
+  controllers: [RegistrationController, LoginController],
   providers: [
     // 1. Colleghiamo le porte in ingresso (Inbound Ports)
     {
@@ -29,29 +26,28 @@ import { REGISTRATION_SERVICE } from '../../application/services/registration.se
     // 2. Colleghiamo le porte in uscita (Outbound Ports)
     {
       provide: 'IUserFindPort',
-      useClass: PostgresAdapter, 
+      useClass: PostgresAdapter,
     },
     {
       provide: 'IUserSavePort',
-      useClass: PostgresAdapter, 
+      useClass: PostgresAdapter,
     },
     {
-        provide: 'IHashComparePort',
-        useClass: BcryptService,    
+      provide: 'IHashComparePort',
+      useClass: BcryptService,
     },
     {
-        provide: 'IHashPasswordPort',
-        useClass: BcryptService,    
+      provide: 'IHashPasswordPort',
+      useClass: BcryptService,
     },
     {
-        provide: 'ITokenGeneratePort',
-        useClass: JwtService,
+      provide: 'ITokenGeneratePort',
+      useClass: JwtService,
     },
     {
-        provide: 'IVerifyTokenPort',
-        useClass: JwtService,
+      provide: 'IVerifyTokenPort',
+      useClass: JwtService,
     },
-
-    ],
+  ],
 })
 export class AuthModule {}
