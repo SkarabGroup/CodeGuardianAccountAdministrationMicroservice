@@ -4,6 +4,7 @@ import { AuthResultDto } from '../DTOs/auth-result.dto';
 import type { IUserFindPort } from '../ports/IUserFind.port';
 import type { ITokenProviderPort } from '../ports/ITokenProvider.port';
 import type { IHashComparePort } from '../ports/IHashCompare.port';
+import type { ISessionPort } from '../ports/ISession.port';
 import type { IloginUseCase } from '../use-cases/login.usecase';
 
 @Injectable()
@@ -14,6 +15,8 @@ export class LoginService implements IloginUseCase {
     private readonly tokenProviderPort: ITokenProviderPort,
     @Inject('IHashComparePort')
     private readonly hashComparePort: IHashComparePort,
+    @Inject('ISessionPort')
+    private readonly sessionPort: ISessionPort,
   ) {}
 
   async execute(command: LoginCommand): Promise<AuthResultDto> {
@@ -43,7 +46,16 @@ export class LoginService implements IloginUseCase {
       email: user.getEmail().value,
     });
 
-    // 4. return rispostas
+    // 4. Salva la sessione nel DB (scadenza a 7 giorni)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    await this.sessionPort.saveSession(
+      user.getUserId().value,
+      refreshToken,
+      expiresAt,
+    );
+
+    // 5. return rispostas
     return {
       tokens: {
         accessToken,

@@ -126,4 +126,57 @@ describe('PostgresAdapter', () => {
       expect(result?.getUpdatedAt()).toEqual(now);
     });
   });
+
+  describe('Session Management', () => {
+    const mockToken = 'mock-refresh-token';
+    const expiresAt = new Date('2026-04-10T00:00:00Z');
+
+    it('dovrebbe salvare una sessione con successo', async () => {
+      queryMock.mockResolvedValueOnce({ rows: [] });
+
+      await adapter.saveSession(validUuidV7, mockToken, expiresAt);
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      const [sql, values] = queryMock.mock.calls[0] as [string, unknown[]];
+      expect(sql).toContain('INSERT INTO sessions');
+      expect(values).toContain(validUuidV7);
+      expect(values).toContain(mockToken);
+    });
+
+    it('dovrebbe eliminare una sessione con successo', async () => {
+      queryMock.mockResolvedValueOnce({ rows: [] });
+
+      await adapter.deleteSession(mockToken);
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'DELETE FROM sessions WHERE refresh_token = $1',
+        ),
+        [mockToken],
+      );
+    });
+
+    it('dovrebbe restituire true se la sessione è valida', async () => {
+      queryMock.mockResolvedValueOnce({ rows: [{ id: 'some-id' }] });
+
+      const result = await adapter.isSessionValid(mockToken);
+
+      expect(result).toBe(true);
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'SELECT * FROM sessions WHERE refresh_token = $1',
+        ),
+        expect.arrayContaining([mockToken]),
+      );
+    });
+
+    it('dovrebbe restituire false se la sessione è scaduta o non trovata', async () => {
+      queryMock.mockResolvedValueOnce({ rows: [] });
+
+      const result = await adapter.isSessionValid(mockToken);
+
+      expect(result).toBe(false);
+    });
+  });
 });
