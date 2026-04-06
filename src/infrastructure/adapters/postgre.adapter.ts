@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Pool } from 'pg';
+import { randomUUID } from 'crypto';
 import { IUserFindPort } from '../../application/ports/IUserFind.port';
 import { IUserSavePort } from '../../application/ports/IUserSave.port';
+import { ISessionPort } from '../../application/ports/ISession.port';
 import { User } from '../../domain/entities/user.entity';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import { Email } from '../../domain/value-objects/email.vo';
@@ -16,7 +18,9 @@ interface UserDbRecord {
 }
 
 @Injectable()
-export class PostgresAdapter implements IUserFindPort, IUserSavePort {
+export class PostgresAdapter
+  implements IUserFindPort, IUserSavePort, ISessionPort
+{
   private readonly pool: Pool;
 
   constructor() {
@@ -66,9 +70,36 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
       new Date(dbRecord.updated_at),
     );
   }
+
+  async saveSession(
+    userId: string,
+    refreshToken: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    const query = `
+            INSERT INTO sessions (id, user_id, refresh_token, expires_at, created_at) 
+            VALUES ($1, $2, $3, $4, $5)`;
+
+    const values = [randomUUID(), userId, refreshToken, expiresAt, new Date()];
+
+    await this.pool.query(query, values);
+  }
+
+  async deleteSession(refreshToken: string): Promise<void> {
+    const query = `DELETE FROM sessions WHERE refresh_token = $1`;
+    await this.pool.query(query, [refreshToken]);
+  }
+
+  async isSessionValid(refreshToken: string): Promise<boolean> {
+    const query = `SELECT * FROM sessions WHERE refresh_token = $1 AND expires_at > $2`;
+    const { rows } = await this.pool.query(query, [refreshToken, new Date()]);
+
+    return rows.length > 0;
+  }
 }
 
 export const POSTGRES_FIND_ADAPTER = Symbol('IUserFindPort');
 export const POSTGRES_SAVE_ADAPTER = Symbol('IUserSavePort');
 /*export const POSTGRES_DELETE_ADAPTER = Symbol('IUserDeletePort');*/
 /*export const POSTGRES_UPDATE_ADAPTER = Symbol('IUserUpdatePort');*/
+export const POSTGRES_SESSION_ADAPTER = Symbol('ISessionPort');
