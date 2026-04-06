@@ -5,6 +5,7 @@ import type { IUserFindPort } from '../ports/IUserFind.port';
 import type { ITokenProviderPort } from '../ports/ITokenProvider.port';
 import type { IHashComparePort } from '../ports/IHashCompare.port';
 import type { IloginUseCase } from '../use-cases/login.usecase';
+import { InvalidCredentialsException } from '../exceptions/invalid-credentials.exception';
 
 @Injectable()
 export class LoginService implements IloginUseCase {
@@ -20,7 +21,7 @@ export class LoginService implements IloginUseCase {
     //1. check che lo user esista
     const user = await this.userFindPort.find(command.email);
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new InvalidCredentialsException();
     }
 
     //2. check che la password sia giusta
@@ -30,7 +31,7 @@ export class LoginService implements IloginUseCase {
     );
 
     if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
+      throw new InvalidCredentialsException();
     }
 
     //3. generazione token

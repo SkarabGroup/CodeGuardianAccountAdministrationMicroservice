@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Pool } from 'pg';
 import { IUserFindPort } from '../../application/ports/IUserFind.port';
 import { IUserSavePort } from '../../application/ports/IUserSave.port';
@@ -6,7 +6,6 @@ import { User } from '../../domain/entities/user.entity';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import { Email } from '../../domain/value-objects/email.vo';
 import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
-
 //forma dei dati che ci si aspetta dal db
 interface UserDbRecord {
   id: string;
@@ -23,10 +22,11 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
   constructor() {
     this.pool = new Pool({
       connectionString:
-        process.env.DATABASE_URL ||
-        //questa post andrà mesa in base all'ip del db
-        'postgres://postgres:root@localhost:5432/miodb',
+        process.env.DATABASE_URL ||'postgres://root:root@localhost:5432/miodb'
     });
+  }
+  async onModuleDestroy() {
+    await this.pool.end();
   }
 
   async save(user: User): Promise<void> {
@@ -71,3 +71,4 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort {
 export const POSTGRES_FIND_ADAPTER = Symbol('IUserFindPort');
 export const POSTGRES_SAVE_ADAPTER = Symbol('IUserSavePort');
 /*export const POSTGRES_DELETE_ADAPTER = Symbol('IUserDeletePort');*/
+/*export const POSTGRES_UPDATE_ADAPTER = Symbol('IUserUpdatePort');*/

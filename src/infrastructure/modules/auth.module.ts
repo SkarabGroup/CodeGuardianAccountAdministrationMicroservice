@@ -41,8 +41,8 @@ import { REGISTRATION_SERVICE } from '../../application/services/registration.se
       useClass: BcryptService,
     },
     {
-      provide: 'ITokenGeneratePort',
-      useClass: JwtService,
+        provide: 'ITokenProviderPort',
+        useClass: JwtService,
     },
     {
       provide: 'IVerifyTokenPort',
