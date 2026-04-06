@@ -9,9 +9,14 @@ import { BcryptService } from '../adapters/bcrypt.service';
 import { JwtService } from '../adapters/jwt.service';
 import { LOGIN_SERVICE } from '../../application/services/login.service';
 import { REGISTRATION_SERVICE } from '../../application/services/registration.service';
+import { LogoutController } from '../../presentation/controllers/logout.controller';
+import {
+  LogoutService,
+  LOGOUT_SERVICE,
+} from '../../application/services/logout.service';
 
 @Module({
-  controllers: [RegistrationController, LoginController],
+  controllers: [RegistrationController, LoginController, LogoutController],
   providers: [
     // 1. Colleghiamo le porte in ingresso (Inbound Ports)
     {
@@ -22,6 +27,10 @@ import { REGISTRATION_SERVICE } from '../../application/services/registration.se
       provide: REGISTRATION_SERVICE,
       useClass: RegistrationService,
     },
+    {
+      provide: LOGOUT_SERVICE,
+      useClass: LogoutService,
+    },
 
     // 2. Colleghiamo le porte in uscita (Outbound Ports)
     {
@@ -30,6 +39,10 @@ import { REGISTRATION_SERVICE } from '../../application/services/registration.se
     },
     {
       provide: 'IUserSavePort',
+      useClass: PostgresAdapter,
+    },
+    {
+      provide: 'ISessionPort',
       useClass: PostgresAdapter,
     },
     {

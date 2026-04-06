@@ -13,6 +13,11 @@ describe('LoginService', () => {
     generateRefreshToken: jest.fn(),
   };
   const mockHashComparePort = { compare: jest.fn() };
+  const mockSessionPort = {
+    saveSession: jest.fn(),
+    deleteSession: jest.fn(),
+    isSessionValid: jest.fn(),
+  };
 
   // Creiamo un mock fittizio dell'entità User per simulare il ritorno dal DB
   const mockUser = {
@@ -32,6 +37,7 @@ describe('LoginService', () => {
         { provide: 'IUserFindPort', useValue: mockUserFindPort },
         { provide: 'ITokenProviderPort', useValue: mockTokenProviderPort },
         { provide: 'IHashComparePort', useValue: mockHashComparePort },
+        { provide: 'ISessionPort', useValue: mockSessionPort },
       ],
     }).compile();
 
@@ -67,6 +73,12 @@ describe('LoginService', () => {
         sub: '123e4567-e89b-12d3-a456-426614174000',
         email: 'test@example.com',
       });
+
+      expect(mockSessionPort.saveSession).toHaveBeenCalledWith(
+        '123e4567-e89b-12d3-a456-426614174000',
+        'mock-refresh-token',
+        expect.any(Date),
+      );
 
       expect(result.tokens.accessToken).toBe('mock-access-token');
       expect(result.tokens.refreshToken).toBe('mock-refresh-token');
