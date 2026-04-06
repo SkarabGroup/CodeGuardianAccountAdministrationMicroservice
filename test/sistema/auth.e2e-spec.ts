@@ -4,7 +4,6 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { Pool } from 'pg';
 // Importa qui il tuo Exception Filter se lo hai creato
-import { AllExceptionsFilter } from '../../src/presentation/filters/exceptions.filter';
 
 // 1. Aumentiamo il timeout per dare tempo a DB e NestJS di partire
 jest.setTimeout(15000); 

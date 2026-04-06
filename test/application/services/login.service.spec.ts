@@ -2,7 +2,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoginService } from '../../../src/application/services/login.service';
 import { LoginCommand } from '../../../src/application/commands/login.command';
-import { AllExceptionsFilter } from '../../../src/presentation/filters/exceptions.filter';
 import { InvalidCredentialsException } from '../../../src/application/exceptions/invalid-credentials.exception';
 describe('LoginService', () => {
   let service: LoginService;

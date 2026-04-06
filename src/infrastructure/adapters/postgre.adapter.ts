@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Pool } from 'pg';
 import { IUserFindPort } from '../../application/ports/IUserFind.port';
 import { IUserSavePort } from '../../application/ports/IUserSave.port';
