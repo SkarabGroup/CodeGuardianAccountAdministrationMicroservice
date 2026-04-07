@@ -9,7 +9,6 @@ import type { IUserFindPort } from '../../../src/application/ports/IUserFind.por
 import type { IUserUpdatePort } from '../../../src/application/ports/IUserUpdate.port';
 import type { ITokenProviderPort } from '../../../src/application/ports/ITokenProvider.port';
 import type { IHashPasswordPort } from '../../../src/application/ports/IHashPassword.port';
-import type { IHashComparePort } from '../../../src/application/ports/IHashCompare.port';
 describe('UpdateService', () => {
   let updateService: UpdateService;
 
@@ -20,7 +19,6 @@ describe('UpdateService', () => {
   const mockGenerateToken = jest.fn();
   const mockGenerateRefreshToken = jest.fn();
   const mockHash = jest.fn();
-  const mockCompare = jest.fn();
 
   // Assegniamo le funzioni standalone per rispettare le Ports
   const mockUserFindPort: IUserFindPort = { find: mockFind };
@@ -33,9 +31,7 @@ describe('UpdateService', () => {
     hash: mockHash,
   };
 
-  const mockPasswordComparePort: IHashComparePort = {
-    compare: mockCompare,
-  };
+
   // Dati di test validi
   const validEmailStr = 'test@example.com';
   const validUuidV7 = '018f4567-e89b-72d3-a456-426614174000';
