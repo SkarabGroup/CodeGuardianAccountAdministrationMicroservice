@@ -10,14 +10,17 @@ import { JwtService } from '../adapters/jwt.service';
 import { LOGIN_SERVICE } from '../../application/services/login.service';
 import { REGISTRATION_SERVICE } from '../../application/services/registration.service';
 import { LogoutController } from '../../presentation/controllers/logout.controller';
-import {
-  LogoutService,
-  LOGOUT_SERVICE,
-} from '../../application/services/logout.service';
-
+import { LogoutService, LOGOUT_SERVICE } from '../../application/services/logout.service';
+import { UPDATE_SERVICE, UpdateService } from '../../application/services/update.service';
+import { DELETE_SERVICE, DeleteService } from '../../application/services/delete.service';
+import { UpdateController } from '../../presentation/controllers/update.controller';
+import { DeleteUserController } from '../../presentation/controllers/delete.controller';
 @Module({
-  controllers: [RegistrationController, LoginController, LogoutController],
+  controllers: [RegistrationController, LoginController, LogoutController, UpdateController, DeleteUserController],
   providers: [
+    PostgresAdapter,
+    BcryptService,
+    JwtService,
     // 1. Colleghiamo le porte in ingresso (Inbound Ports)
     {
       provide: LOGIN_SERVICE,
@@ -31,35 +34,50 @@ import {
       provide: LOGOUT_SERVICE,
       useClass: LogoutService,
     },
-
+    { 
+      provide : UPDATE_SERVICE,
+      useClass : UpdateService,
+    },
+    {
+      provide : DELETE_SERVICE,
+      useClass : DeleteService,
+    },
     // 2. Colleghiamo le porte in uscita (Outbound Ports)
     {
       provide: 'IUserFindPort',
-      useClass: PostgresAdapter,
+      useExisting: PostgresAdapter,
     },
     {
       provide: 'IUserSavePort',
-      useClass: PostgresAdapter,
+      useExisting: PostgresAdapter,
     },
     {
       provide: 'ISessionPort',
-      useClass: PostgresAdapter,
+      useExisting: PostgresAdapter,
     },
     {
       provide: 'IHashComparePort',
-      useClass: BcryptService,
+      useExisting: BcryptService,
     },
     {
       provide: 'IHashPasswordPort',
-      useClass: BcryptService,
+      useExisting: BcryptService,
     },
     {
-        provide: 'ITokenProviderPort',
-        useClass: JwtService,
+      provide: 'ITokenProviderPort',
+      useExisting: JwtService,
     },
     {
       provide: 'IVerifyTokenPort',
-      useClass: JwtService,
+      useExisting: JwtService,
+    },
+    {
+      provide: 'IUserDeletePort',
+      useExisting: PostgresAdapter,
+    }, 
+    {      
+      provide: 'IUserUpdatePort',
+      useExisting: PostgresAdapter,
     },
   ],
 })

@@ -1,3 +1,3 @@
 export class LogoutCommand {
-  refreshToken: string;
+  refreshToken!: string;
 }

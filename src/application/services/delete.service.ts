@@ -20,4 +20,4 @@ export class DeleteService implements IDeleteUseCase {
   }
 }
 
-export const DELETE_SERVICE = Symbol('IDeleteUseCase');
+export const DELETE_SERVICE = Symbol('IDeleteService');

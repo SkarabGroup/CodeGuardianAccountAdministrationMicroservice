@@ -1,22 +1,15 @@
-import {
-  Controller,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Request as NestRequest,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Delete, HttpCode, HttpStatus, Inject, Request as NestRequest, UnauthorizedException } from '@nestjs/common';
 import type { Request } from 'express';
 import type { IDeleteUseCase } from '../../application/use-cases/delete.usecase';
 import { DeleteCommand } from '../../application/commands/delete.command';
 import { DeleteResponseDto } from '../DTOs/response/delete-response.dto';
 import { JwtService } from '../../infrastructure/adapters/jwt.service';
+import { DELETE_SERVICE } from '../../application/services/delete.service';
 
 @Controller('users')
 export class DeleteUserController {
   constructor(
-    @Inject('IDeleteUseCase') private readonly deleteUseCase: IDeleteUseCase,
+    @Inject(DELETE_SERVICE) private readonly deleteUseCase: IDeleteUseCase,
     private readonly jwtService: JwtService,
   ) {}
 
