@@ -6,7 +6,7 @@ import { DELETE_SERVICE } from '../../src/application/services/delete.service';
 import type { IDeleteUseCase } from '../../src/application/use-cases/delete.usecase';
 import { JwtService } from '../../src/infrastructure/adapters/jwt.service';
 import { DeleteResponseDto } from '../../src/presentation/DTOs/response/delete-response.dto';
-import { DeleteCommand } from '../../src/application/commands/delete.command';
+import type { DeleteCommand } from '../../src/application/commands/delete.command';
 
 describe('DeleteUserController', () => {
   let controller: DeleteUserController;

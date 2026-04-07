@@ -28,11 +28,6 @@ describe('UpdateService', () => {
   const mockHashPasswordPort: jest.Mocked<IHashPasswordPort> = {
     hash: jest.fn(),
   };
-
-  const mockHashComparePort: jest.Mocked<IHashComparePort> = {
-    compare: jest.fn(),
-  };
-
   const validEmailStr = 'test@example.com';
   const validUuidV7 = '018f4567-e89b-72d3-a456-426614174000';
   const oldHashStr = '$2b$10$' + 'a'.repeat(53);

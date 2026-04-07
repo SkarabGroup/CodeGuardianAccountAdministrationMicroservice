@@ -9,7 +9,7 @@ import { JwtService } from '../../../src/infrastructure/adapters/jwt.service';
 import { UpdateRequestDto } from '../../../src/presentation/DTOs/request/update.dto';
 import { AuthResultDto } from '../../../src/application/DTOs/auth-result.dto';
 import { AuthResponseDto, UserResponseDto } from '../../../src/presentation/DTOs/response/auth-response.dto';
-import { UpdateUserCommand } from '../../../src/application/commands/update.command';
+import type { UpdateUserCommand } from '../../../src/application/commands/update.command';
 
 describe('UpdateController', () => {
   let controller: UpdateController;
