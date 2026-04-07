@@ -9,7 +9,6 @@ import type { IUserFindPort } from '../../../src/application/ports/IUserFind.por
 import type { IUserUpdatePort } from '../../../src/application/ports/IUserUpdate.port';
 import type { ITokenProviderPort } from '../../../src/application/ports/ITokenProvider.port';
 import type { IHashPasswordPort } from '../../../src/application/ports/IHashPassword.port';
-import type { IHashComparePort } from '../../../src/application/ports/IHashCompare.port';
 describe('UpdateService', () => {
   let updateService: UpdateService;
   const mockUserFindPort: jest.Mocked<IUserFindPort> = {
