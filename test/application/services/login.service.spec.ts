@@ -2,10 +2,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoginService } from '../../../src/application/services/login.service';
 import { LoginCommand } from '../../../src/application/commands/login.command';
-
+import { InvalidCredentialsException } from '../../../src/application/exceptions/invalid-credentials.exception';
 describe('LoginService', () => {
   let service: LoginService;
-
   // Mock delle porte in uscita (Outbound Ports)
   const mockUserFindPort = { find: jest.fn() };
   const mockTokenProviderPort = {
@@ -90,9 +89,7 @@ describe('LoginService', () => {
 
       mockUserFindPort.find.mockResolvedValue(null); // Utente non trovato
 
-      await expect(service.execute(command)).rejects.toThrow(
-        'Invalid credentials',
-      );
+      await expect(service.execute(command)).rejects.toThrow(InvalidCredentialsException);
 
       // Assicuriamoci che non provi nemmeno a comparare la password o generare token
       expect(mockHashComparePort.compare).not.toHaveBeenCalled();
@@ -105,9 +102,7 @@ describe('LoginService', () => {
       mockUserFindPort.find.mockResolvedValue(mockUser);
       mockHashComparePort.compare.mockResolvedValue(false); // Password errata
 
-      await expect(service.execute(command)).rejects.toThrow(
-        'Invalid credentials',
-      );
+      await expect(service.execute(command)).rejects.toThrow(InvalidCredentialsException);
       expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
     });
   });

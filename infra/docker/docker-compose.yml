@@ -1,11 +1,35 @@
 services:
+  # Container per il Database PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: auth-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: miodb
+    ports:
+      - '5432:5432'
+    volumes:
+      # Monta lo script SQL nella cartella speciale di init di Postgres
+      - ../../database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
   app:
     build:
-      context: ../../
+      context: ../../ # Il contesto è la root del progetto
       dockerfile: infra/docker/Dockerfile.dev
+    container_name: nest_app
     ports:
       - "3000:3000"
+    environment:
+      # ORA COMBACIA ALLA PERFEZIONE CON LE CREDENZIALI DEL DB!
+      DATABASE_URL: postgres://root:root@db:5432/miodb
+    depends_on:
+      - db
     volumes:
-      - ../../:/app
-      - /app/node_modules
+      - ../../:/usr/src/app
+      - /usr/src/app/node_modules
     command: npm run start:dev
+
+volumes:
+  pgdata:

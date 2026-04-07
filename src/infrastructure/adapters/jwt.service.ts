@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from '../../application/DTOs/jwt-payload.type';
 import { ITokenProviderPort } from '../../application/ports/ITokenProvider.port';
-import { IVerifyTokenPort } from 'src/application/ports/IVerifyToken.port';
+import { IVerifyTokenPort } from '../../application/ports/IVerifyToken.port';
 
 @Injectable()
 export class JwtService implements ITokenProviderPort, IVerifyTokenPort {

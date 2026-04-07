@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { IHashPasswordPort } from '../../application/ports/IHashPassword.port';
-import { IHashComparePort } from 'src/application/ports/IHashCompare.port';
+import { IHashComparePort } from '../../application/ports/IHashCompare.port';
 
 @Injectable()
 export class BcryptService implements IHashPasswordPort, IHashComparePort {
