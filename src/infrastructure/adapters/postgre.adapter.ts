@@ -8,6 +8,9 @@ import { User } from '../../domain/entities/user.entity';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import { Email } from '../../domain/value-objects/email.vo';
 import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
+import { IUserDeletePort } from '../../application/ports/IUserDelete.port';
+import { IUserUpdatePort } from '../../application/ports/IUserUpdate.port';
+
 //forma dei dati che ci si aspetta dal db
 interface UserDbRecord {
   id: string;
@@ -18,9 +21,7 @@ interface UserDbRecord {
 }
 
 @Injectable()
-export class PostgresAdapter
-  implements IUserFindPort, IUserSavePort, ISessionPort
-{
+export class PostgresAdapter implements IUserFindPort, IUserSavePort, ISessionPort, IUserDeletePort, IUserUpdatePort{
   private readonly pool: Pool;
 
   constructor() {
@@ -58,9 +59,7 @@ export class PostgresAdapter
     if (rows.length === 0) {
       return null;
     }
-
     const dbRecord = rows[0];
-
     // 3. Ora TypeScript sa che dbRecord.id è sicuramente una stringa e non si arrabbia più!
     return User.reconstitute(
       UserId.create(dbRecord.id),
@@ -71,17 +70,12 @@ export class PostgresAdapter
     );
   }
 
-  async saveSession(
-    userId: string,
-    refreshToken: string,
-    expiresAt: Date,
-  ): Promise<void> {
+  async saveSession(userId: string, refreshToken: string, expiresAt: Date): Promise<void> {
     const query = `
             INSERT INTO sessions (id, user_id, refresh_token, expires_at, created_at) 
             VALUES ($1, $2, $3, $4, $5)`;
 
     const values = [randomUUID(), userId, refreshToken, expiresAt, new Date()];
-
     await this.pool.query(query, values);
   }
 
@@ -93,13 +87,33 @@ export class PostgresAdapter
   async isSessionValid(refreshToken: string): Promise<boolean> {
     const query = `SELECT * FROM sessions WHERE refresh_token = $1 AND expires_at > $2`;
     const { rows } = await this.pool.query(query, [refreshToken, new Date()]);
-
     return rows.length > 0;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    const query = `DELETE FROM users WHERE id = $1`;
+    await this.pool.query(query, [userId]);
+  }
+
+  async update(user: User): Promise<void> {
+    const query = `
+            UPDATE users 
+            SET email = $1, password_hash = $2, updated_at = $3 
+            WHERE id = $4`;
+
+    const values = [
+      user.getEmail().value,
+      user.getPasswordHash().value,
+      user.getUpdatedAt(),
+      user.getUserId().value,
+    ];
+
+    await this.pool.query(query, values);
   }
 }
 
 export const POSTGRES_FIND_ADAPTER = Symbol('IUserFindPort');
 export const POSTGRES_SAVE_ADAPTER = Symbol('IUserSavePort');
-/*export const POSTGRES_DELETE_ADAPTER = Symbol('IUserDeletePort');*/
-/*export const POSTGRES_UPDATE_ADAPTER = Symbol('IUserUpdatePort');*/
+export const POSTGRES_DELETE_ADAPTER = Symbol('IUserDeletePort');
+export const POSTGRES_UPDATE_ADAPTER = Symbol('IUserUpdatePort');
 export const POSTGRES_SESSION_ADAPTER = Symbol('ISessionPort');

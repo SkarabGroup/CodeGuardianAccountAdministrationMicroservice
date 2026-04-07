@@ -18,10 +18,8 @@ export class RegistrationService implements IregistrationUseCase {
   constructor(
     @Inject('IUserFindPort') private readonly userFindPort: IUserFindPort,
     @Inject('IUserSavePort') private readonly userSavePort: IUserSavePort,
-    @Inject('IHashPasswordPort')
-    private readonly hashPasswordPort: IHashPasswordPort,
-    @Inject('ITokenProviderPort')
-    private readonly tokenProviderPort: ITokenProviderPort,
+    @Inject('IHashPasswordPort') private readonly hashPasswordPort: IHashPasswordPort,
+    @Inject('ITokenProviderPort') private readonly tokenProviderPort: ITokenProviderPort,
   ) {}
 
   async execute(command: RegistrationUserCommand): Promise<AuthResultDto> {

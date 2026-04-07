@@ -14,13 +14,14 @@ interface MockUserDbRecord {
   updated_at: Date;
 }
 
-// Creiamo il mock tipizzandolo leggermente meglio
+// Creiamo il mock tipizzandolo
 const queryMock = jest.fn();
-
+const endMock = jest.fn(); // Aggiunto per testare onModuleDestroy
 jest.mock('pg', () => {
   return {
     Pool: jest.fn().mockImplementation(() => ({
       query: queryMock,
+      end: endMock,
     })),
   };
 });
@@ -40,7 +41,7 @@ describe('PostgresAdapter', () => {
     (Pool as unknown as jest.Mock).mockClear();
 
     adapter = new PostgresAdapter();
-
+    endMock.mockClear(); // <-- Aggiungi questa riga nel beforeEach
     testUser = User.reconstitute(
       UserId.create(validUuidV7),
       Email.create(validEmailStr),
@@ -177,6 +178,56 @@ describe('PostgresAdapter', () => {
       const result = await adapter.isSessionValid(mockToken);
 
       expect(result).toBe(false);
+    });
+  });
+  
+  describe('update()', () => {
+    it('dovrebbe eseguire una query UPDATE con i valori corretti estratti dall\'Entità', async () => {
+      // Mockiamo una risoluzione vuota (l'UPDATE non ritorna righe tramite { rows } di default se non c'è RETURNING)
+      queryMock.mockResolvedValueOnce({ rows: [] });
+
+      await adapter.update(testUser);
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+
+      // Usiamo una tupla esatta per il cast, evitando 'any'
+      const [sqlQuery, values] = queryMock.mock.calls[0] as [string, unknown[]];
+
+      expect(sqlQuery).toContain('UPDATE users');
+      expect(sqlQuery).toContain('SET email = $1, password_hash = $2, updated_at = $3');
+      expect(sqlQuery).toContain('WHERE id = $4');
+
+      expect(values).toEqual([
+        validEmailStr, // $1: email
+        validHashStr,  // $2: password_hash
+        now,           // $3: updated_at
+        validUuidV7,   // $4: id
+      ]);
+    });
+  });
+
+  describe('deleteUser()', () => {
+    it('dovrebbe eseguire una query DELETE con l\'ID corretto', async () => {
+      queryMock.mockResolvedValueOnce({ rows: [] });
+
+      await adapter.deleteUser(validUuidV7);
+
+      expect(queryMock).toHaveBeenCalledTimes(1);
+      expect(queryMock).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM users WHERE id = $1'),
+        [validUuidV7],
+      );
+    });
+  });
+
+  describe('onModuleDestroy()', () => {
+    it('dovrebbe chiudere il pool di connessioni invocando end()', async () => {
+      // Dato che onModuleDestroy non ritorna nulla, testiamo solo l'effetto collaterale
+      endMock.mockResolvedValueOnce(undefined);
+
+      await adapter.onModuleDestroy();
+
+      expect(endMock).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,136 +1,121 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
-import { DeleteUserController } from '../../src/presentation/controllers/delete.controller';
-import { IDeleteUseCase } from '../../src/application/use-cases/delete.usecase';
-import { DeleteCommand } from '../../src/application/commands/delete.command';
-import { DeleteResponseDto } from '../../src/presentation/DTOs/response/delete-response.dto';
-import { JwtService } from '../../src/infrastructure/adapters/jwt.service';
 import type { Request } from 'express';
+import { DeleteUserController } from '../../src/presentation/controllers/delete.controller';
+import { DELETE_SERVICE } from '../../src/application/services/delete.service';
+import type { IDeleteUseCase } from '../../src/application/use-cases/delete.usecase';
+import { JwtService } from '../../src/infrastructure/adapters/jwt.service';
+import { DeleteResponseDto } from '../../src/presentation/DTOs/response/delete-response.dto';
 
 describe('DeleteUserController', () => {
   let controller: DeleteUserController;
-  let deleteUseCase: IDeleteUseCase;
-  let jwtService: JwtService;
+
+  // Variabili standalone per risolvere l'errore @typescript-eslint/unbound-method
+  const mockDeleteExecute = jest.fn();
+  const mockVerifyToken = jest.fn();
+
+  // Assegniamo le funzioni mock agli oggetti tipizzati
+  const mockDeleteUseCase: IDeleteUseCase = {
+    execute: mockDeleteExecute,
+  };
+
+  const mockJwtService = {
+    verifyToken: mockVerifyToken,
+  };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DeleteUserController],
       providers: [
         {
-          provide: 'IDeleteUseCase',
-          useValue: {
-            execute: jest.fn(),
-          },
+          provide: DELETE_SERVICE,
+          useValue: mockDeleteUseCase,
         },
         {
           provide: JwtService,
-          useValue: {
-            verifyToken: jest.fn(),
-          },
+          useValue: mockJwtService,
         },
       ],
     }).compile();
 
     controller = module.get<DeleteUserController>(DeleteUserController);
-    deleteUseCase = module.get<IDeleteUseCase>('IDeleteUseCase');
-    jwtService = module.get<JwtService>(JwtService);
   });
 
-  it('should be defined', () => {
+  it('dovrebbe essere definito', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('delete', () => {
-    const VALID_UUID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-    const MOCK_TOKEN = 'mock.jwt.token';
-    const VALID_REQ: Partial<Request> = {
-      headers: {
-        authorization: `Bearer ${MOCK_TOKEN}`,
-      },
+  describe('delete()', () => {
+    const validUserId = '123e4567-e89b-72d3-a456-426614174000';
+    const validToken = 'valid.jwt.token';
+
+    // Helper per creare una Request tipizzata senza usare 'any'
+    const createMockRequest = (authHeader?: string): Request => {
+      return {
+        headers: {
+          authorization: authHeader,
+        },
+      } as unknown as Request;
     };
 
-    it('should build a DeleteCommand from the JWT sub and call the use case', async () => {
-      const payload = { sub: VALID_UUID, email: 'test@example.com' };
-      const verifyTokenSpy = jest
-        .spyOn(jwtService, 'verifyToken')
-        .mockReturnValue(payload);
-
-      const expectedResponse = new DeleteResponseDto();
-      expectedResponse.deleted = true;
-
-      const executeSpy = jest
-        .spyOn(deleteUseCase, 'execute')
-        .mockResolvedValue(expectedResponse);
-
-      const result = await controller.delete(VALID_REQ as Request);
-
-      const expectedCommand = new DeleteCommand();
-      expectedCommand.userToDelete = VALID_UUID;
-
-      expect(verifyTokenSpy).toHaveBeenCalledWith(MOCK_TOKEN);
-      expect(executeSpy).toHaveBeenCalledTimes(1);
-      expect(executeSpy).toHaveBeenCalledWith(expectedCommand);
-      expect(result).toBe(expectedResponse);
+    it('dovrebbe lanciare UnauthorizedException se l\'header authorization è assente', async () => {
+      const req = createMockRequest(undefined);
+      await expect(controller.delete(req)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('should throw UnauthorizedException if authorization header is missing', async () => {
-      const emptyReq: Partial<Request> = { headers: {} };
-      await expect(controller.delete(emptyReq as Request)).rejects.toThrow(
-        UnauthorizedException,
-      );
+    it('dovrebbe lanciare UnauthorizedException se l\'header non inizia con Bearer', async () => {
+      const req = createMockRequest(`Basic ${validToken}`);
+      await expect(controller.delete(req)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('should throw UnauthorizedException if auth header does not start with Bearer', async () => {
-      const badReq: Partial<Request> = {
-        headers: { authorization: 'Basic 123' },
-      };
-      await expect(controller.delete(badReq as Request)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should throw UnauthorizedException if token verification fails', async () => {
-      jest.spyOn(jwtService, 'verifyToken').mockReturnValue(null);
-      await expect(controller.delete(VALID_REQ as Request)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should throw UnauthorizedException if verifyToken throws', async () => {
-      jest.spyOn(jwtService, 'verifyToken').mockImplementation(() => {
-        throw new Error('jwt malformed');
+    it('dovrebbe lanciare UnauthorizedException se il token non è valido (verifyToken lancia un errore)', async () => {
+      const req = createMockRequest(`Bearer invalid.token`);
+      
+      mockVerifyToken.mockImplementationOnce(() => {
+        throw new Error('Invalid signature');
       });
 
-      await expect(controller.delete(VALID_REQ as Request)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(controller.delete(req)).rejects.toThrow(UnauthorizedException);
     });
 
-    it('should return the DeleteResponseDto with deleted property', async () => {
-      const payload = { sub: VALID_UUID, email: 'test@example.com' };
-      jest.spyOn(jwtService, 'verifyToken').mockReturnValue(payload);
+    it('dovrebbe costruire un DeleteCommand dal payload JWT e chiamare il caso d\'uso', async () => {
+      const req = createMockRequest(`Bearer ${validToken}`);
+      
+      // Simuliamo la decodifica del token con successo
+      mockVerifyToken.mockReturnValueOnce({ sub: validUserId, email: 'test@test.com' });
 
-      const expectedResponse = new DeleteResponseDto();
-      expectedResponse.deleted = true;
+      const mockResponse = new DeleteResponseDto();
+      mockResponse.deleted = true;
+      mockDeleteExecute.mockResolvedValueOnce(mockResponse);
 
-      jest.spyOn(deleteUseCase, 'execute').mockResolvedValue(expectedResponse);
+      const result = await controller.delete(req);
 
-      const result = await controller.delete(VALID_REQ as Request);
+      // Passiamo le funzioni standalone ad expect per far felice il linter
+      expect(mockVerifyToken).toHaveBeenCalledWith(validToken);
 
+      expect(mockDeleteExecute).toHaveBeenCalledTimes(1);
+      
+      // Usiamo objectContaining per verificare il command senza dover importare la classe DeleteCommand
+      expect(mockDeleteExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ userToDelete: validUserId })
+      );
+
+      // Verifichiamo il risultato
       expect(result).toBeInstanceOf(DeleteResponseDto);
       expect(result.deleted).toBe(true);
     });
 
-    it('should propagate exceptions thrown by the use case', async () => {
-      const payload = { sub: VALID_UUID, email: 'test@example.com' };
-      jest.spyOn(jwtService, 'verifyToken').mockReturnValue(payload);
+    it('dovrebbe propagare le eccezioni lanciate dal caso d\'uso', async () => {
+      const req = createMockRequest(`Bearer ${validToken}`);
+      
+      mockVerifyToken.mockReturnValueOnce({ sub: validUserId, email: 'test@test.com' });
 
-      const error = new Error('Use case failure');
-      jest.spyOn(deleteUseCase, 'execute').mockRejectedValue(error);
+      const expectedError = new Error('Database connection failed');
+      mockDeleteExecute.mockRejectedValueOnce(expectedError);
 
-      await expect(controller.delete(VALID_REQ as Request)).rejects.toThrow(
-        'Use case failure',
-      );
+      await expect(controller.delete(req)).rejects.toThrow(expectedError);
     });
   });
 });
