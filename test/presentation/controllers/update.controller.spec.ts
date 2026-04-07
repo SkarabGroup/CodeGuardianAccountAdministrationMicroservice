@@ -1,4 +1,3 @@
-// test/presentation/controllers/update.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
 import type { Request } from 'express';
@@ -9,19 +8,21 @@ import { JwtService } from '../../../src/infrastructure/adapters/jwt.service';
 import { UpdateRequestDto } from '../../../src/presentation/DTOs/request/update.dto';
 import { AuthResultDto } from '../../../src/application/DTOs/auth-result.dto';
 import { AuthResponseDto, UserResponseDto } from '../../../src/presentation/DTOs/response/auth-response.dto';
-import type { UpdateUserCommand } from '../../../src/application/commands/update.command';
 
 describe('UpdateController', () => {
   let controller: UpdateController;
 
-  // 1. Mock rigoroso per il Use Case
-  const mockUpdateUseCase: jest.Mocked<IupdateUseCase> = {
-    execute: jest.fn(),
+  // Variabili standalone per risolvere l'errore @typescript-eslint/unbound-method
+  const mockUpdateExecute = jest.fn();
+  const mockVerifyToken = jest.fn();
+
+  // Assegniamo le funzioni mock agli oggetti tipizzati
+  const mockUpdateUseCase: IupdateUseCase = {
+    execute: mockUpdateExecute,
   };
 
-  // 2. Mock per il JwtService
   const mockJwtService = {
-    verifyToken: jest.fn(),
+    verifyToken: mockVerifyToken,
   };
 
   beforeEach(async () => {
@@ -52,7 +53,7 @@ describe('UpdateController', () => {
     const validEmail = 'secure@example.com';
     const validToken = 'valid.jwt.token';
 
-    // Helper per creare una Request tipizzata
+    // Helper per creare una Request tipizzata senza usare 'any'
     const createMockRequest = (authHeader?: string): Request => {
       return {
         headers: {
@@ -72,7 +73,7 @@ describe('UpdateController', () => {
       const req = createMockRequest('Bearer bad.token');
       const dto: UpdateRequestDto = { newPassword: 'NewPassword123!' };
       
-      mockJwtService.verifyToken.mockImplementationOnce(() => {
+      mockVerifyToken.mockImplementationOnce(() => {
         throw new Error('Invalid signature');
       });
 
@@ -84,7 +85,7 @@ describe('UpdateController', () => {
       const dto: UpdateRequestDto = { newPassword: 'NewPassword123!' };
       
       // Manca l'email nel payload finto
-      mockJwtService.verifyToken.mockReturnValueOnce({ sub: '123' });
+      mockVerifyToken.mockReturnValueOnce({ sub: '123' });
 
       await expect(controller.updatePassword(req, dto)).rejects.toThrow(UnauthorizedException);
     });
@@ -97,7 +98,7 @@ describe('UpdateController', () => {
       };
 
       // Simuliamo la lettura del token con successo
-      mockJwtService.verifyToken.mockReturnValueOnce({ sub: '123e4567', email: validEmail });
+      mockVerifyToken.mockReturnValueOnce({ sub: '123e4567', email: validEmail });
 
       // 2. ESECUZIONE (Risultato finto dal service)
       const mockAuthResult: AuthResultDto = {
@@ -108,23 +109,24 @@ describe('UpdateController', () => {
         user: {
           id: '123e4567-e89b-72d3-a456-426614174000',
           email: validEmail,
-          createdAt: new Date().toISOString(),  
-          updatedAt: new Date().toISOString(), 
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       };
 
-      mockUpdateUseCase.execute.mockResolvedValueOnce(mockAuthResult);
+      mockUpdateExecute.mockResolvedValueOnce(mockAuthResult);
 
       // 3. Chiamata effettiva al controller
       const result = await controller.updatePassword(req, requestDto);
 
       // 4. Verifiche: il Command deve unire Email (dal token) e Password (dal body)
-      expect(mockJwtService.verifyToken).toHaveBeenCalledWith(validToken);
-      expect(mockUpdateUseCase.execute).toHaveBeenCalledTimes(1);
+      expect(mockVerifyToken).toHaveBeenCalledWith(validToken);
+      expect(mockUpdateExecute).toHaveBeenCalledTimes(1);
       
-      const passedCommand = mockUpdateUseCase.execute.mock.calls[0][0] as UpdateUserCommand;
-      expect(passedCommand.email).toBe(validEmail);
-      expect(passedCommand.newPassword).toBe('NewPassword123!');
+      // Usiamo objectContaining per evitare di importare UpdateUserCommand
+      expect(mockUpdateExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ email: validEmail, newPassword: 'NewPassword123!' })
+      );
 
       // 5. Verifica dell'uscita
       expect(result).toBeInstanceOf(AuthResponseDto);
@@ -137,10 +139,10 @@ describe('UpdateController', () => {
       const req = createMockRequest(`Bearer ${validToken}`);
       const dto: UpdateRequestDto = { newPassword: 'NewPassword123!' };
       
-      mockJwtService.verifyToken.mockReturnValueOnce({ sub: '123', email: validEmail });
+      mockVerifyToken.mockReturnValueOnce({ sub: '123', email: validEmail });
 
       const expectedError = new Error('Database Error');
-      mockUpdateUseCase.execute.mockRejectedValueOnce(expectedError);
+      mockUpdateExecute.mockRejectedValueOnce(expectedError);
 
       await expect(controller.updatePassword(req, dto)).rejects.toThrow(expectedError);
     });

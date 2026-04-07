@@ -6,19 +6,21 @@ import { DELETE_SERVICE } from '../../src/application/services/delete.service';
 import type { IDeleteUseCase } from '../../src/application/use-cases/delete.usecase';
 import { JwtService } from '../../src/infrastructure/adapters/jwt.service';
 import { DeleteResponseDto } from '../../src/presentation/DTOs/response/delete-response.dto';
-import type { DeleteCommand } from '../../src/application/commands/delete.command';
 
 describe('DeleteUserController', () => {
   let controller: DeleteUserController;
 
-  // 1. Creiamo il mock strettamente tipizzato per il Use Case
-  const mockDeleteUseCase: jest.Mocked<IDeleteUseCase> = {
-    execute: jest.fn(),
+  // Variabili standalone per risolvere l'errore @typescript-eslint/unbound-method
+  const mockDeleteExecute = jest.fn();
+  const mockVerifyToken = jest.fn();
+
+  // Assegniamo le funzioni mock agli oggetti tipizzati
+  const mockDeleteUseCase: IDeleteUseCase = {
+    execute: mockDeleteExecute,
   };
 
-  // 2. Creiamo il mock per il JwtService (ci serve solo il metodo verifyToken)
   const mockJwtService = {
-    verifyToken: jest.fn(),
+    verifyToken: mockVerifyToken,
   };
 
   beforeEach(async () => {
@@ -27,7 +29,6 @@ describe('DeleteUserController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DeleteUserController],
       providers: [
-        // Forniamo i mock al modulo di test!
         {
           provide: DELETE_SERVICE,
           useValue: mockDeleteUseCase,
@@ -50,7 +51,7 @@ describe('DeleteUserController', () => {
     const validUserId = '123e4567-e89b-72d3-a456-426614174000';
     const validToken = 'valid.jwt.token';
 
-    // Helper per creare una finta Request Express in modo tipizzato
+    // Helper per creare una Request tipizzata senza usare 'any'
     const createMockRequest = (authHeader?: string): Request => {
       return {
         headers: {
@@ -71,7 +72,8 @@ describe('DeleteUserController', () => {
 
     it('dovrebbe lanciare UnauthorizedException se il token non è valido (verifyToken lancia un errore)', async () => {
       const req = createMockRequest(`Bearer invalid.token`);
-      mockJwtService.verifyToken.mockImplementationOnce(() => {
+      
+      mockVerifyToken.mockImplementationOnce(() => {
         throw new Error('Invalid signature');
       });
 
@@ -82,21 +84,23 @@ describe('DeleteUserController', () => {
       const req = createMockRequest(`Bearer ${validToken}`);
       
       // Simuliamo la decodifica del token con successo
-      mockJwtService.verifyToken.mockReturnValueOnce({ sub: validUserId, email: 'test@test.com' });
+      mockVerifyToken.mockReturnValueOnce({ sub: validUserId, email: 'test@test.com' });
 
       const mockResponse = new DeleteResponseDto();
       mockResponse.deleted = true;
-      mockDeleteUseCase.execute.mockResolvedValueOnce(mockResponse);
+      mockDeleteExecute.mockResolvedValueOnce(mockResponse);
 
       const result = await controller.delete(req);
 
-      // Verifichiamo che JwtService sia stato chiamato col token estratto
-      expect(mockJwtService.verifyToken).toHaveBeenCalledWith(validToken);
+      // Passiamo le funzioni standalone ad expect per far felice il linter
+      expect(mockVerifyToken).toHaveBeenCalledWith(validToken);
 
-      // Verifichiamo che il command sia stato costruito col sub estratto dal token
-      expect(mockDeleteUseCase.execute).toHaveBeenCalledTimes(1);
-      const passedCommand = mockDeleteUseCase.execute.mock.calls[0][0] as DeleteCommand;
-      expect(passedCommand.userToDelete).toBe(validUserId);
+      expect(mockDeleteExecute).toHaveBeenCalledTimes(1);
+      
+      // Usiamo objectContaining per verificare il command senza dover importare la classe DeleteCommand
+      expect(mockDeleteExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ userToDelete: validUserId })
+      );
 
       // Verifichiamo il risultato
       expect(result).toBeInstanceOf(DeleteResponseDto);
@@ -105,10 +109,11 @@ describe('DeleteUserController', () => {
 
     it('dovrebbe propagare le eccezioni lanciate dal caso d\'uso', async () => {
       const req = createMockRequest(`Bearer ${validToken}`);
-      mockJwtService.verifyToken.mockReturnValueOnce({ sub: validUserId, email: 'test@test.com' });
+      
+      mockVerifyToken.mockReturnValueOnce({ sub: validUserId, email: 'test@test.com' });
 
       const expectedError = new Error('Database connection failed');
-      mockDeleteUseCase.execute.mockRejectedValueOnce(expectedError);
+      mockDeleteExecute.mockRejectedValueOnce(expectedError);
 
       await expect(controller.delete(req)).rejects.toThrow(expectedError);
     });
