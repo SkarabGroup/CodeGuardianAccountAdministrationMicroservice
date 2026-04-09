@@ -38,25 +38,29 @@ describe('AllExceptionsFilter', () => {
     });
   });
 
-  it('should return 401 for exception with name "Email already in use"', () => {
-    const exception = new Error('Some message');
-    exception.name = 'Email already in use';
+  it('should return 409 for exception with message "Email already in use"', () => {
+    const exception = new Error('Email already in use');
 
     filter.catch(exception, mockHost);
 
-    expect(mockStatus).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
+    expect(mockStatus).toHaveBeenCalledWith(HttpStatus.CONFLICT);
     expect(mockJson).toHaveBeenCalledWith({
-      statusCode: HttpStatus.UNAUTHORIZED,
-      message: 'Some message',
+      statusCode: HttpStatus.CONFLICT,
+      message: 'Email already in use',
       error: 'Conflict',
     });
   });
 
-  it('should not call response for unhandled exceptions', () => {
+  it('should return 500 Internal Server Error for unhandled exceptions', () => {
     const exception = new Error('Generic error');
 
     filter.catch(exception, mockHost);
 
-    expect(mockStatus).not.toHaveBeenCalled();
+    expect(mockStatus).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+    expect(mockJson).toHaveBeenCalledWith({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Internal Server Error',
+      error: 'Generic error',
+    });
   });
 });

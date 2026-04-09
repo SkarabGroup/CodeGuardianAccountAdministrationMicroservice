@@ -20,12 +20,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    if (exception.name === 'Email already in use') {
-      return response.status(HttpStatus.UNAUTHORIZED).json({
-        statusCode: HttpStatus.UNAUTHORIZED,
+    if (exception.message === 'Email already in use') {
+      return response.status(HttpStatus.CONFLICT).json({
+        statusCode: HttpStatus.CONFLICT,
         message: exception.message,
         error: 'Conflict',
       });
     }
+
+    return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Internal Server Error',
+      error: exception.message,
+    });
   }
 }
