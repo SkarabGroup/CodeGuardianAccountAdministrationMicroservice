@@ -14,8 +14,6 @@ describe('LoginService', () => {
   const mockHashComparePort = { compare: jest.fn() };
   const mockSessionPort = {
     saveSession: jest.fn(),
-    deleteSession: jest.fn(),
-    isSessionValid: jest.fn(),
   };
 
   // Creiamo un mock fittizio dell'entità User per simulare il ritorno dal DB
@@ -36,7 +34,7 @@ describe('LoginService', () => {
         { provide: 'IUserFindPort', useValue: mockUserFindPort },
         { provide: 'ITokenProviderPort', useValue: mockTokenProviderPort },
         { provide: 'IHashComparePort', useValue: mockHashComparePort },
-        { provide: 'ISessionPort', useValue: mockSessionPort },
+        { provide: 'ISessionSavePort', useValue: mockSessionPort },
       ],
     }).compile();
 
@@ -89,7 +87,9 @@ describe('LoginService', () => {
 
       mockUserFindPort.find.mockResolvedValue(null); // Utente non trovato
 
-      await expect(service.execute(command)).rejects.toThrow(InvalidCredentialsException);
+      await expect(service.execute(command)).rejects.toThrow(
+        InvalidCredentialsException,
+      );
 
       // Assicuriamoci che non provi nemmeno a comparare la password o generare token
       expect(mockHashComparePort.compare).not.toHaveBeenCalled();
@@ -102,7 +102,9 @@ describe('LoginService', () => {
       mockUserFindPort.find.mockResolvedValue(mockUser);
       mockHashComparePort.compare.mockResolvedValue(false); // Password errata
 
-      await expect(service.execute(command)).rejects.toThrow(InvalidCredentialsException);
+      await expect(service.execute(command)).rejects.toThrow(
+        InvalidCredentialsException,
+      );
       expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
     });
   });

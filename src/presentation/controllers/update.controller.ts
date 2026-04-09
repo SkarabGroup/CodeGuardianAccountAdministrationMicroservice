@@ -1,8 +1,20 @@
 // src/presentation/controllers/update.controller.ts
-import { Body, Controller, HttpCode, HttpStatus, Inject, Patch, Request as NestRequest, UnauthorizedException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Patch,
+  Request as NestRequest,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { UpdateRequestDto } from '../DTOs/request/update.dto';
-import { AuthResponseDto, UserResponseDto } from '../DTOs/response/auth-response.dto';
+import {
+  AuthResponseDto,
+  UserResponseDto,
+} from '../DTOs/response/auth-response.dto';
 import type { IupdateUseCase } from '../../application/use-cases/update.usecase';
 import { UpdateUserCommand } from '../../application/commands/update.command';
 import { UPDATE_SERVICE } from '../../application/services/update.service';
@@ -21,7 +33,6 @@ export class UpdateController {
     @NestRequest() req: Request, // <-- Aggiungiamo l'oggetto Request per leggere l'header
     @Body() requestDto: UpdateRequestDto,
   ): Promise<AuthResponseDto> {
-    
     // 1. ESTRAZIONE E VERIFICA DEL TOKEN (Sicurezza!)
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -30,7 +41,7 @@ export class UpdateController {
 
     const token = authHeader.split(' ')[1];
     let payload: ReturnType<typeof this.jwtService.verifyToken>;
-    
+
     try {
       payload = this.jwtService.verifyToken(token);
     } catch {
@@ -64,5 +75,3 @@ export class UpdateController {
     return response;
   }
 }
-
-

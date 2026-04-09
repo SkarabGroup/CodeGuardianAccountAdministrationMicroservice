@@ -16,7 +16,9 @@ describe('AllExceptionsFilter', () => {
     mockJson = jest.fn();
     mockStatus = jest.fn().mockReturnValue({ json: mockJson });
     mockGetResponse = jest.fn().mockReturnValue({ status: mockStatus });
-    mockSwitchToHttp = jest.fn().mockReturnValue({ getResponse: mockGetResponse });
+    mockSwitchToHttp = jest
+      .fn()
+      .mockReturnValue({ getResponse: mockGetResponse });
 
     mockHost = {
       switchToHttp: mockSwitchToHttp,

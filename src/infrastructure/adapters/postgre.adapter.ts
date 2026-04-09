@@ -3,7 +3,8 @@ import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 import { IUserFindPort } from '../../application/ports/IUserFind.port';
 import { IUserSavePort } from '../../application/ports/IUserSave.port';
-import { ISessionPort } from '../../application/ports/ISession.port';
+import { ISessionSavePort } from '../../application/ports/ISessionSave.port';
+import { ISessionDeletePort } from '../../application/ports/ISessionDelete.port';
 import { User } from '../../domain/entities/user.entity';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import { Email } from '../../domain/value-objects/email.vo';
@@ -21,13 +22,21 @@ interface UserDbRecord {
 }
 
 @Injectable()
-export class PostgresAdapter implements IUserFindPort, IUserSavePort, ISessionPort, IUserDeletePort, IUserUpdatePort{
+export class PostgresAdapter
+  implements
+    IUserFindPort,
+    IUserSavePort,
+    ISessionSavePort,
+    ISessionDeletePort,
+    IUserDeletePort,
+    IUserUpdatePort
+{
   private readonly pool: Pool;
 
   constructor() {
     this.pool = new Pool({
       connectionString:
-        process.env.DATABASE_URL ||'postgres://root:root@localhost:5432/miodb'
+        process.env.DATABASE_URL || 'postgres://root:root@localhost:5432/miodb',
     });
   }
   async onModuleDestroy() {
@@ -70,7 +79,11 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort, ISessionPo
     );
   }
 
-  async saveSession(userId: string, refreshToken: string, expiresAt: Date): Promise<void> {
+  async saveSession(
+    userId: string,
+    refreshToken: string,
+    expiresAt: Date,
+  ): Promise<void> {
     const query = `
             INSERT INTO sessions (id, user_id, refresh_token, expires_at, created_at) 
             VALUES ($1, $2, $3, $4, $5)`;
@@ -82,12 +95,6 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort, ISessionPo
   async deleteSession(refreshToken: string): Promise<void> {
     const query = `DELETE FROM sessions WHERE refresh_token = $1`;
     await this.pool.query(query, [refreshToken]);
-  }
-
-  async isSessionValid(refreshToken: string): Promise<boolean> {
-    const query = `SELECT * FROM sessions WHERE refresh_token = $1 AND expires_at > $2`;
-    const { rows } = await this.pool.query(query, [refreshToken, new Date()]);
-    return rows.length > 0;
   }
 
   async deleteUser(userId: string): Promise<void> {
@@ -116,4 +123,5 @@ export const POSTGRES_FIND_ADAPTER = Symbol('IUserFindPort');
 export const POSTGRES_SAVE_ADAPTER = Symbol('IUserSavePort');
 export const POSTGRES_DELETE_ADAPTER = Symbol('IUserDeletePort');
 export const POSTGRES_UPDATE_ADAPTER = Symbol('IUserUpdatePort');
-export const POSTGRES_SESSION_ADAPTER = Symbol('ISessionPort');
+export const POSTGRES_SESSION_SAVE_ADAPTER = Symbol('ISessionSavePort');
+export const POSTGRES_SESSION_DELETE_ADAPTER = Symbol('ISessionDeletePort');

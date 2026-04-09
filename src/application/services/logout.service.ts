@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ILogoutUseCase } from '../use-cases/logout.usecase';
 import { LogoutCommand } from '../commands/logout.command';
-import type { ISessionPort } from '../ports/ISession.port';
+import type { ISessionDeletePort } from '../ports/ISessionDelete.port';
 
 @Injectable()
 export class LogoutService implements ILogoutUseCase {
   constructor(
-    @Inject('ISessionPort')
-    private readonly sessionPort: ISessionPort,
+    @Inject('ISessionDeletePort')
+    private readonly sessionPort: ISessionDeletePort,
   ) {}
 
   async execute(command: LogoutCommand): Promise<void> {

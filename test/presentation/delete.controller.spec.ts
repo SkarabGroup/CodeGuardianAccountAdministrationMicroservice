@@ -60,31 +60,50 @@ describe('DeleteUserController', () => {
       } as unknown as Request;
     };
 
-    it('dovrebbe lanciare UnauthorizedException se l\'header authorization è assente', async () => {
+    it("dovrebbe lanciare UnauthorizedException se l'header authorization è assente", async () => {
       const req = createMockRequest(undefined);
-      await expect(controller.delete(req)).rejects.toThrow(UnauthorizedException);
+      await expect(controller.delete(req)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
-    it('dovrebbe lanciare UnauthorizedException se l\'header non inizia con Bearer', async () => {
+    it("dovrebbe lanciare UnauthorizedException se l'header non inizia con Bearer", async () => {
       const req = createMockRequest(`Basic ${validToken}`);
-      await expect(controller.delete(req)).rejects.toThrow(UnauthorizedException);
+      await expect(controller.delete(req)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('dovrebbe lanciare UnauthorizedException se il token non è valido (verifyToken lancia un errore)', async () => {
       const req = createMockRequest(`Bearer invalid.token`);
-      
+
       mockVerifyToken.mockImplementationOnce(() => {
         throw new Error('Invalid signature');
       });
 
-      await expect(controller.delete(req)).rejects.toThrow(UnauthorizedException);
+      await expect(controller.delete(req)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
-    it('dovrebbe costruire un DeleteCommand dal payload JWT e chiamare il caso d\'uso', async () => {
+    it('dovrebbe lanciare UnauthorizedException se il token non ha un payload valido (undefined)', async () => {
       const req = createMockRequest(`Bearer ${validToken}`);
-      
+
+      mockVerifyToken.mockReturnValueOnce(null);
+
+      await expect(controller.delete(req)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it("dovrebbe costruire un DeleteCommand dal payload JWT e chiamare il caso d'uso", async () => {
+      const req = createMockRequest(`Bearer ${validToken}`);
+
       // Simuliamo la decodifica del token con successo
-      mockVerifyToken.mockReturnValueOnce({ sub: validUserId, email: 'test@test.com' });
+      mockVerifyToken.mockReturnValueOnce({
+        sub: validUserId,
+        email: 'test@test.com',
+      });
 
       const mockResponse = new DeleteResponseDto();
       mockResponse.deleted = true;
@@ -96,10 +115,10 @@ describe('DeleteUserController', () => {
       expect(mockVerifyToken).toHaveBeenCalledWith(validToken);
 
       expect(mockDeleteExecute).toHaveBeenCalledTimes(1);
-      
+
       // Usiamo objectContaining per verificare il command senza dover importare la classe DeleteCommand
       expect(mockDeleteExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ userToDelete: validUserId })
+        expect.objectContaining({ userToDelete: validUserId }),
       );
 
       // Verifichiamo il risultato
@@ -107,10 +126,13 @@ describe('DeleteUserController', () => {
       expect(result.deleted).toBe(true);
     });
 
-    it('dovrebbe propagare le eccezioni lanciate dal caso d\'uso', async () => {
+    it("dovrebbe propagare le eccezioni lanciate dal caso d'uso", async () => {
       const req = createMockRequest(`Bearer ${validToken}`);
-      
-      mockVerifyToken.mockReturnValueOnce({ sub: validUserId, email: 'test@test.com' });
+
+      mockVerifyToken.mockReturnValueOnce({
+        sub: validUserId,
+        email: 'test@test.com',
+      });
 
       const expectedError = new Error('Database connection failed');
       mockDeleteExecute.mockRejectedValueOnce(expectedError);

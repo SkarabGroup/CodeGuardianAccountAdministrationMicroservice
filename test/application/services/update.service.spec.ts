@@ -31,7 +31,6 @@ describe('UpdateService', () => {
     hash: mockHash,
   };
 
-
   // Dati di test validi
   const validEmailStr = 'test@example.com';
   const validUuidV7 = '018f4567-e89b-72d3-a456-426614174000';
@@ -66,7 +65,7 @@ describe('UpdateService', () => {
     );
   });
 
-  it('dovrebbe lanciare un Errore se l\'utente non viene trovato', async () => {
+  it("dovrebbe lanciare un Errore se l'utente non viene trovato", async () => {
     mockFind.mockResolvedValueOnce(null);
 
     const command: UpdateUserCommand = {
@@ -74,20 +73,22 @@ describe('UpdateService', () => {
       newPassword: 'SomePassword123!',
     };
 
-    await expect(updateService.execute(command)).rejects.toThrow('User not found');
-    
+    await expect(updateService.execute(command)).rejects.toThrow(
+      'User not found',
+    );
+
     // Usiamo le variabili standalone nell'expect!
     expect(mockHash).not.toHaveBeenCalled();
     expect(mockUpdate).not.toHaveBeenCalled();
   });
 
-  it('dovrebbe aggiornare la password, salvare l\'utente e restituire nuovi token', async () => {
+  it("dovrebbe aggiornare la password, salvare l'utente e restituire nuovi token", async () => {
     mockFind.mockResolvedValueOnce(testUser);
-    
+
     const newPasswordPlain = 'NewSuperStrongPass!1';
     const newHashStr = '$2b$10$' + 'b'.repeat(53);
     mockHash.mockResolvedValueOnce(newHashStr);
-    
+
     mockGenerateToken.mockReturnValueOnce('new-access-token');
     mockGenerateRefreshToken.mockReturnValueOnce('new-refresh-token');
 
@@ -102,7 +103,7 @@ describe('UpdateService', () => {
 
     expect(mockFind).toHaveBeenCalledWith(validEmailStr);
     expect(mockHash).toHaveBeenCalledWith(newPasswordPlain);
-    
+
     expect(updatePasswordSpy).toHaveBeenCalledTimes(1);
     expect(testUser.getPasswordHash().value).toBe(newHashStr);
 
@@ -119,9 +120,9 @@ describe('UpdateService', () => {
     expect(result.user.id).toBe(validUuidV7);
   });
 
-  it('dovrebbe aggiornare l\'utente senza modificare la password se newPassword non è fornita', async () => {
+  it("dovrebbe aggiornare l'utente senza modificare la password se newPassword non è fornita", async () => {
     mockFind.mockResolvedValueOnce(testUser);
-    
+
     mockGenerateToken.mockReturnValueOnce('new-access-token');
     mockGenerateRefreshToken.mockReturnValueOnce('new-refresh-token');
 

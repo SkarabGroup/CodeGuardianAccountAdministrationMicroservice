@@ -7,7 +7,10 @@ import type { IupdateUseCase } from '../../../src/application/use-cases/update.u
 import { JwtService } from '../../../src/infrastructure/adapters/jwt.service';
 import { UpdateRequestDto } from '../../../src/presentation/DTOs/request/update.dto';
 import { AuthResultDto } from '../../../src/application/DTOs/auth-result.dto';
-import { AuthResponseDto, UserResponseDto } from '../../../src/presentation/DTOs/response/auth-response.dto';
+import {
+  AuthResponseDto,
+  UserResponseDto,
+} from '../../../src/presentation/DTOs/response/auth-response.dto';
 
 describe('UpdateController', () => {
   let controller: UpdateController;
@@ -62,35 +65,41 @@ describe('UpdateController', () => {
       } as unknown as Request;
     };
 
-    it('dovrebbe lanciare UnauthorizedException se manca l\'header authorization', async () => {
+    it("dovrebbe lanciare UnauthorizedException se manca l'header authorization", async () => {
       const req = createMockRequest(undefined);
       const dto: UpdateRequestDto = { newPassword: 'NewPassword123!' };
-      
-      await expect(controller.updatePassword(req, dto)).rejects.toThrow(UnauthorizedException);
+
+      await expect(controller.updatePassword(req, dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('dovrebbe lanciare UnauthorizedException se il token non è valido', async () => {
       const req = createMockRequest('Bearer bad.token');
       const dto: UpdateRequestDto = { newPassword: 'NewPassword123!' };
-      
+
       mockVerifyToken.mockImplementationOnce(() => {
         throw new Error('Invalid signature');
       });
 
-      await expect(controller.updatePassword(req, dto)).rejects.toThrow(UnauthorizedException);
+      await expect(controller.updatePassword(req, dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
-    it('dovrebbe lanciare UnauthorizedException se il token non contiene l\'email', async () => {
+    it("dovrebbe lanciare UnauthorizedException se il token non contiene l'email", async () => {
       const req = createMockRequest(`Bearer ${validToken}`);
       const dto: UpdateRequestDto = { newPassword: 'NewPassword123!' };
-      
+
       // Manca l'email nel payload finto
       mockVerifyToken.mockReturnValueOnce({ sub: '123' });
 
-      await expect(controller.updatePassword(req, dto)).rejects.toThrow(UnauthorizedException);
+      await expect(controller.updatePassword(req, dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
-    it('dovrebbe mappare il DTO e il Token nel Command, chiamare il caso d\'uso e mappare la risposta', async () => {
+    it("dovrebbe mappare il DTO e il Token nel Command, chiamare il caso d'uso e mappare la risposta", async () => {
       // 1. INGRESSO
       const req = createMockRequest(`Bearer ${validToken}`);
       const requestDto: UpdateRequestDto = {
@@ -98,7 +107,10 @@ describe('UpdateController', () => {
       };
 
       // Simuliamo la lettura del token con successo
-      mockVerifyToken.mockReturnValueOnce({ sub: '123e4567', email: validEmail });
+      mockVerifyToken.mockReturnValueOnce({
+        sub: '123e4567',
+        email: validEmail,
+      });
 
       // 2. ESECUZIONE (Risultato finto dal service)
       const mockAuthResult: AuthResultDto = {
@@ -122,10 +134,13 @@ describe('UpdateController', () => {
       // 4. Verifiche: il Command deve unire Email (dal token) e Password (dal body)
       expect(mockVerifyToken).toHaveBeenCalledWith(validToken);
       expect(mockUpdateExecute).toHaveBeenCalledTimes(1);
-      
+
       // Usiamo objectContaining per evitare di importare UpdateUserCommand
       expect(mockUpdateExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ email: validEmail, newPassword: 'NewPassword123!' })
+        expect.objectContaining({
+          email: validEmail,
+          newPassword: 'NewPassword123!',
+        }),
       );
 
       // 5. Verifica dell'uscita
@@ -138,13 +153,15 @@ describe('UpdateController', () => {
     it('dovrebbe propagare correttamente le eccezioni del Service', async () => {
       const req = createMockRequest(`Bearer ${validToken}`);
       const dto: UpdateRequestDto = { newPassword: 'NewPassword123!' };
-      
+
       mockVerifyToken.mockReturnValueOnce({ sub: '123', email: validEmail });
 
       const expectedError = new Error('Database Error');
       mockUpdateExecute.mockRejectedValueOnce(expectedError);
 
-      await expect(controller.updatePassword(req, dto)).rejects.toThrow(expectedError);
+      await expect(controller.updatePassword(req, dto)).rejects.toThrow(
+        expectedError,
+      );
     });
   });
 });
