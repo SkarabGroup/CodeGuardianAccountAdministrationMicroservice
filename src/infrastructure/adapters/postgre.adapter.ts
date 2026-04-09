@@ -26,12 +26,8 @@ export class PostgresAdapter
   implements
     IUserFindPort,
     IUserSavePort,
-<<<<<<< HEAD
     ISessionSavePort,
     ISessionDeletePort,
-=======
-    ISessionPort,
->>>>>>> develop
     IUserDeletePort,
     IUserUpdatePort
 {
