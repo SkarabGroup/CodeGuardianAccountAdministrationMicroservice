@@ -21,7 +21,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // 3. CHIUSURA GRAZIOSA (Critico per il Database)
-  // Questo dice a NestJS: "Quando ti spegni (o quando un test finisce), 
+  // Questo dice a NestJS: "Quando ti spegni (o quando un test finisce),
   // vai a cercare tutti i metodi onModuleDestroy() e avviali".
   // È questo che permette al tuo PostgresAdapter di fare `this.pool.end()`!
   app.enableShutdownHooks();

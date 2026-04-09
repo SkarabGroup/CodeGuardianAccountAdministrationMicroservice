@@ -21,13 +21,20 @@ interface UserDbRecord {
 }
 
 @Injectable()
-export class PostgresAdapter implements IUserFindPort, IUserSavePort, ISessionPort, IUserDeletePort, IUserUpdatePort{
+export class PostgresAdapter
+  implements
+    IUserFindPort,
+    IUserSavePort,
+    ISessionPort,
+    IUserDeletePort,
+    IUserUpdatePort
+{
   private readonly pool: Pool;
 
   constructor() {
     this.pool = new Pool({
       connectionString:
-        process.env.DATABASE_URL ||'postgres://root:root@localhost:5432/miodb'
+        process.env.DATABASE_URL || 'postgres://root:root@localhost:5432/miodb',
     });
   }
   async onModuleDestroy() {
@@ -70,7 +77,11 @@ export class PostgresAdapter implements IUserFindPort, IUserSavePort, ISessionPo
     );
   }
 
-  async saveSession(userId: string, refreshToken: string, expiresAt: Date): Promise<void> {
+  async saveSession(
+    userId: string,
+    refreshToken: string,
+    expiresAt: Date,
+  ): Promise<void> {
     const query = `
             INSERT INTO sessions (id, user_id, refresh_token, expires_at, created_at) 
             VALUES ($1, $2, $3, $4, $5)`;

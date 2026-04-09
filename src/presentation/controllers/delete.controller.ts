@@ -1,4 +1,12 @@
-import { Controller, Delete, HttpCode, HttpStatus, Inject, Request as NestRequest, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Request as NestRequest,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import type { IDeleteUseCase } from '../../application/use-cases/delete.usecase';
 import { DeleteCommand } from '../../application/commands/delete.command';
