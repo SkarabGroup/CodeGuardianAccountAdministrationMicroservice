@@ -1,5 +1,15 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject,Post } from '@nestjs/common';
-import { LogoutService, LOGOUT_SERVICE } from '../../application/services/logout.service';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+} from '@nestjs/common';
+import {
+  LogoutService,
+  LOGOUT_SERVICE,
+} from '../../application/services/logout.service';
 import { LogoutCommand } from '../../application/commands/logout.command';
 import { LogoutRequestDto } from '../DTOs/request/logout.dto';
 import { LogoutResponseDto } from '../DTOs/response/logout-response.dto';

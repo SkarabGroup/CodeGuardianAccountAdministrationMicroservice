@@ -89,7 +89,9 @@ describe('LoginService', () => {
 
       mockUserFindPort.find.mockResolvedValue(null); // Utente non trovato
 
-      await expect(service.execute(command)).rejects.toThrow(InvalidCredentialsException);
+      await expect(service.execute(command)).rejects.toThrow(
+        InvalidCredentialsException,
+      );
 
       // Assicuriamoci che non provi nemmeno a comparare la password o generare token
       expect(mockHashComparePort.compare).not.toHaveBeenCalled();
@@ -102,7 +104,9 @@ describe('LoginService', () => {
       mockUserFindPort.find.mockResolvedValue(mockUser);
       mockHashComparePort.compare.mockResolvedValue(false); // Password errata
 
-      await expect(service.execute(command)).rejects.toThrow(InvalidCredentialsException);
+      await expect(service.execute(command)).rejects.toThrow(
+        InvalidCredentialsException,
+      );
       expect(mockTokenProviderPort.generateToken).not.toHaveBeenCalled();
     });
   });

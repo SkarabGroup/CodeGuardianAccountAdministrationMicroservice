@@ -9,7 +9,8 @@ describe('JwtService', () => {
   let service: JwtService;
 
   // Costanti per simulare i valori del servizio
-  const defaultSecret = 'dev-secret-change-me';
+  const defaultSecret =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3MTI1ODAwMDAsImV4cCI6MTk5OTk5OTk5OX0.MRBqWo8jM-R9JqrrZI6ShIoDzknxyukQngaNAvQ7m9U';
   const defaultExpiresIn = '2h';
 
   const mockPayload: JwtPayload = {

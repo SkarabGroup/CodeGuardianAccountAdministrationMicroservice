@@ -180,9 +180,9 @@ describe('PostgresAdapter', () => {
       expect(result).toBe(false);
     });
   });
-  
+
   describe('update()', () => {
-    it('dovrebbe eseguire una query UPDATE con i valori corretti estratti dall\'Entità', async () => {
+    it("dovrebbe eseguire una query UPDATE con i valori corretti estratti dall'Entità", async () => {
       // Mockiamo una risoluzione vuota (l'UPDATE non ritorna righe tramite { rows } di default se non c'è RETURNING)
       queryMock.mockResolvedValueOnce({ rows: [] });
 
@@ -194,20 +194,22 @@ describe('PostgresAdapter', () => {
       const [sqlQuery, values] = queryMock.mock.calls[0] as [string, unknown[]];
 
       expect(sqlQuery).toContain('UPDATE users');
-      expect(sqlQuery).toContain('SET email = $1, password_hash = $2, updated_at = $3');
+      expect(sqlQuery).toContain(
+        'SET email = $1, password_hash = $2, updated_at = $3',
+      );
       expect(sqlQuery).toContain('WHERE id = $4');
 
       expect(values).toEqual([
         validEmailStr, // $1: email
-        validHashStr,  // $2: password_hash
-        now,           // $3: updated_at
-        validUuidV7,   // $4: id
+        validHashStr, // $2: password_hash
+        now, // $3: updated_at
+        validUuidV7, // $4: id
       ]);
     });
   });
 
   describe('deleteUser()', () => {
-    it('dovrebbe eseguire una query DELETE con l\'ID corretto', async () => {
+    it("dovrebbe eseguire una query DELETE con l'ID corretto", async () => {
       queryMock.mockResolvedValueOnce({ rows: [] });
 
       await adapter.deleteUser(validUuidV7);

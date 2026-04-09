@@ -1,6 +1,16 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+} from '@nestjs/common';
 import { RegistrationDto } from '../DTOs/request/registration.dto';
-import { AuthResponseDto, UserResponseDto } from '../DTOs/response/auth-response.dto';
+import {
+  AuthResponseDto,
+  UserResponseDto,
+} from '../DTOs/response/auth-response.dto';
 import type { IregistrationUseCase } from '../../application/use-cases/registration.usecase';
 import { RegistrationUserCommand } from '../../application/commands/registration.command';
 import { REGISTRATION_SERVICE } from '../../application/services/registration.service';
