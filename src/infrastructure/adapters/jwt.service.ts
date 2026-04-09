@@ -6,7 +6,7 @@ import { IVerifyTokenPort } from '../../application/ports/IVerifyToken.port';
 
 @Injectable()
 export class JwtService implements ITokenProviderPort, IVerifyTokenPort {
-  private readonly secret = process.env.JWT_SECRET ?? 'dev-secret-change-me';
+  private readonly secret = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3MTI1ODAwMDAsImV4cCI6MTk5OTk5OTk5OX0.MRBqWo8jM-R9JqrrZI6ShIoDzknxyukQngaNAvQ7m9U';
   private readonly expiresIn = '2h';
 
   generateToken(payload: JwtPayload): string {
