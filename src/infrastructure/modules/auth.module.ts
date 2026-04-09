@@ -67,7 +67,11 @@ import { DeleteUserController } from '../../presentation/controllers/delete.cont
       useExisting: PostgresAdapter,
     },
     {
-      provide: 'ISessionPort',
+      provide: 'ISessionSavePort',
+      useExisting: PostgresAdapter,
+    },
+    {
+      provide: 'ISessionDeletePort',
       useExisting: PostgresAdapter,
     },
     {

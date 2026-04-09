@@ -86,6 +86,16 @@ describe('DeleteUserController', () => {
       );
     });
 
+    it('dovrebbe lanciare UnauthorizedException se il token non ha un payload valido (undefined)', async () => {
+      const req = createMockRequest(`Bearer ${validToken}`);
+
+      mockVerifyToken.mockReturnValueOnce(null);
+
+      await expect(controller.delete(req)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
     it("dovrebbe costruire un DeleteCommand dal payload JWT e chiamare il caso d'uso", async () => {
       const req = createMockRequest(`Bearer ${validToken}`);
 

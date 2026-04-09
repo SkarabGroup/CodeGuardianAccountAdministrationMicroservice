@@ -13,7 +13,7 @@ describe('LogoutService', () => {
       providers: [
         LogoutService,
         {
-          provide: 'ISessionPort',
+          provide: 'ISessionDeletePort',
           useValue: mockSessionPort,
         },
       ],

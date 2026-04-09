@@ -14,8 +14,6 @@ describe('LoginService', () => {
   const mockHashComparePort = { compare: jest.fn() };
   const mockSessionPort = {
     saveSession: jest.fn(),
-    deleteSession: jest.fn(),
-    isSessionValid: jest.fn(),
   };
 
   // Creiamo un mock fittizio dell'entità User per simulare il ritorno dal DB
@@ -36,7 +34,7 @@ describe('LoginService', () => {
         { provide: 'IUserFindPort', useValue: mockUserFindPort },
         { provide: 'ITokenProviderPort', useValue: mockTokenProviderPort },
         { provide: 'IHashComparePort', useValue: mockHashComparePort },
-        { provide: 'ISessionPort', useValue: mockSessionPort },
+        { provide: 'ISessionSavePort', useValue: mockSessionPort },
       ],
     }).compile();
 

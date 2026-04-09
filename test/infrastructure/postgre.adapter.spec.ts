@@ -157,28 +157,6 @@ describe('PostgresAdapter', () => {
         [mockToken],
       );
     });
-
-    it('dovrebbe restituire true se la sessione è valida', async () => {
-      queryMock.mockResolvedValueOnce({ rows: [{ id: 'some-id' }] });
-
-      const result = await adapter.isSessionValid(mockToken);
-
-      expect(result).toBe(true);
-      expect(queryMock).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'SELECT * FROM sessions WHERE refresh_token = $1',
-        ),
-        expect.arrayContaining([mockToken]),
-      );
-    });
-
-    it('dovrebbe restituire false se la sessione è scaduta o non trovata', async () => {
-      queryMock.mockResolvedValueOnce({ rows: [] });
-
-      const result = await adapter.isSessionValid(mockToken);
-
-      expect(result).toBe(false);
-    });
   });
 
   describe('update()', () => {

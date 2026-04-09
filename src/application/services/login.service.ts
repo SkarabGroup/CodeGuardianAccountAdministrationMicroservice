@@ -4,7 +4,7 @@ import { AuthResultDto } from '../DTOs/auth-result.dto';
 import type { IUserFindPort } from '../ports/IUserFind.port';
 import type { ITokenProviderPort } from '../ports/ITokenProvider.port';
 import type { IHashComparePort } from '../ports/IHashCompare.port';
-import type { ISessionPort } from '../ports/ISession.port';
+import type { ISessionSavePort } from '../ports/ISessionSave.port';
 import type { IloginUseCase } from '../use-cases/login.usecase';
 import { InvalidCredentialsException } from '../exceptions/invalid-credentials.exception';
 
@@ -16,8 +16,8 @@ export class LoginService implements IloginUseCase {
     private readonly tokenProviderPort: ITokenProviderPort,
     @Inject('IHashComparePort')
     private readonly hashComparePort: IHashComparePort,
-    @Inject('ISessionPort')
-    private readonly sessionPort: ISessionPort,
+    @Inject('ISessionSavePort')
+    private readonly sessionPort: ISessionSavePort,
   ) {}
 
   async execute(command: LoginCommand): Promise<AuthResultDto> {
