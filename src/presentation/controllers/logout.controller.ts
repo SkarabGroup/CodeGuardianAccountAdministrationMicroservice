@@ -6,10 +6,8 @@ import {
   Inject,
   Post,
 } from '@nestjs/common';
-import {
-  LogoutService,
-  LOGOUT_SERVICE,
-} from '../../application/services/logout.service';
+import { LOGOUT_SERVICE } from '../../application/services/logout.service';
+import type { ILogoutUseCase } from '../../application/use-cases/logout.usecase';
 import { LogoutCommand } from '../../application/commands/logout.command';
 import { LogoutRequestDto } from '../DTOs/request/logout.dto';
 import { LogoutResponseDto } from '../DTOs/response/logout-response.dto';
@@ -17,7 +15,7 @@ import { LogoutResponseDto } from '../DTOs/response/logout-response.dto';
 @Controller('auth')
 export class LogoutController {
   constructor(
-    @Inject(LOGOUT_SERVICE) private readonly logoutUseCase: LogoutService,
+    @Inject(LOGOUT_SERVICE) private readonly logoutUseCase: ILogoutUseCase,
   ) {}
 
   @Post('logout')
