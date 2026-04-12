@@ -4,9 +4,9 @@ import { LoginController } from '../../presentation/controllers/login.controller
 import { RegistrationController } from '../../presentation/controllers/registration.controller';
 import { LoginService } from '../../application/services/login.service';
 import { RegistrationService } from '../../application/services/registration.service';
-import { PostgresAdapter } from '../adapters/postgre.adapter';
-import { BcryptService } from '../adapters/bcrypt.service';
-import { JwtService } from '../adapters/jwt.service';
+import { POSTGRES_CONNECTION_STRING_TOKEN, PostgresAdapter } from '../adapters/postgre.adapter';
+import { BcryptService, BCRYPT_ROUNDS_TOKEN } from '../adapters/bcrypt.service';
+import { JwtService, JWT_EXPIRES_IN_TOKEN, JWT_SECRET_TOKEN } from '../adapters/jwt.service';
 import { LOGIN_SERVICE } from '../../application/services/login.service';
 import { REGISTRATION_SERVICE } from '../../application/services/registration.service';
 import { LogoutController } from '../../presentation/controllers/logout.controller';
@@ -24,6 +24,8 @@ import {
 } from '../../application/services/delete.service';
 import { UpdateController } from '../../presentation/controllers/update.controller';
 import { DeleteUserController } from '../../presentation/controllers/delete.controller';
+import { loadConfig } from '../configuration/env.config.service';
+const config = loadConfig();
 @Module({
   controllers: [
     RegistrationController,
@@ -97,6 +99,23 @@ import { DeleteUserController } from '../../presentation/controllers/delete.cont
     {
       provide: 'IUserUpdatePort',
       useExisting: PostgresAdapter,
+    },
+    //configurazione
+    {
+      provide: POSTGRES_CONNECTION_STRING_TOKEN,
+      useValue: config.db.url,
+    },
+    {
+      provide: BCRYPT_ROUNDS_TOKEN,
+      useValue: config.security.bcryptRounds,
+    },
+    { 
+      provide: JWT_SECRET_TOKEN,
+      useValue: config.security.jwtSecret,
+    },
+    {
+      provide: JWT_EXPIRES_IN_TOKEN,
+      useValue: config.security.jwtExpiresIn,
     },
   ],
 })
