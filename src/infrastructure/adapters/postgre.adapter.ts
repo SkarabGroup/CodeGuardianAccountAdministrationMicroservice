@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Injectable, Inject } from '@nestjs/common';
+import {  Pool } from 'pg';
 import { randomUUID } from 'crypto';
 import { IUserFindPort } from '../../application/ports/IUserFind.port';
 import { IUserSavePort } from '../../application/ports/IUserSave.port';
@@ -12,6 +12,7 @@ import { PasswordHash } from '../../domain/value-objects/password-hash.vo';
 import { IUserDeletePort } from '../../application/ports/IUserDelete.port';
 import { IUserUpdatePort } from '../../application/ports/IUserUpdate.port';
 
+export const POSTGRES_CONNECTION_STRING_TOKEN = Symbol('POSTGRES_CONNECTION_STRING');
 //forma dei dati che ci si aspetta dal db
 interface UserDbRecord {
   id: string;
@@ -33,12 +34,12 @@ export class PostgresAdapter
 {
   private readonly pool: Pool;
 
-  constructor() {
+  constructor(@Inject(POSTGRES_CONNECTION_STRING_TOKEN) connectionString: string) {
     this.pool = new Pool({
-      connectionString:
-        process.env.DATABASE_URL || 'postgres://root:root@localhost:5432/miodb',
+      connectionString: connectionString
     });
   }
+  
   async onModuleDestroy() {
     await this.pool.end();
   }

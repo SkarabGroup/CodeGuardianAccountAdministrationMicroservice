@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BcryptService } from '../../src/infrastructure/adapters/bcrypt.service';
+import { BcryptService, BCRYPT_ROUNDS_TOKEN } from '../../src/infrastructure/adapters/bcrypt.service';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt');
@@ -9,7 +9,9 @@ describe('BcryptService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [BcryptService],
+      providers: [BcryptService,
+        { provide: BCRYPT_ROUNDS_TOKEN, useValue: 10 },
+      ],
     }).compile();
 
     service = module.get<BcryptService>(BcryptService);

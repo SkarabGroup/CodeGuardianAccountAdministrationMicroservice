@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JwtService } from '../../src/infrastructure/adapters/jwt.service'; // Controlla che il path sia corretto
+import { JwtService, JWT_EXPIRES_IN_TOKEN, JWT_SECRET_TOKEN } from '../../src/infrastructure/adapters/jwt.service';
 import * as jwt from 'jsonwebtoken';
-import { JwtPayload } from '../../src/application/DTOs/jwt-payload.type'; // Controlla che il path sia corretto
+import { JwtPayload } from '../../src/application/DTOs/jwt-payload.type';
 
 jest.mock('jsonwebtoken');
 
@@ -23,7 +23,11 @@ describe('JwtService', () => {
     delete process.env.JWT_SECRET;
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [JwtService],
+      providers: [
+        JwtService,
+        { provide: JWT_SECRET_TOKEN, useValue: defaultSecret },
+        { provide: JWT_EXPIRES_IN_TOKEN, useValue: defaultExpiresIn },
+      ],
     }).compile();
 
     service = module.get<JwtService>(JwtService);

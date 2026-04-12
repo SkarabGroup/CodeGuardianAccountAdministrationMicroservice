@@ -3,9 +3,13 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 // Importa il filtro se lo hai creato prima, altrimenti lascia commentato
 import { AllExceptionsFilter } from './presentation/filters/exceptions.filter';
+import { loadConfig } from './infrastructure/configuration/env.config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const config = loadConfig();
+  //serve per le api
+  app.enableCors();
 
   // 1. VALIDAZIONE GLOBALE (Fondamentale)
   // Senza questo, i tuoi @IsEmail() e @MinLength() nei DTO vengono ignorati!
@@ -26,7 +30,7 @@ async function bootstrap() {
   // È questo che permette al tuo PostgresAdapter di fare `this.pool.end()`!
   app.enableShutdownHooks();
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(config.server.port);
 }
 
 void bootstrap();

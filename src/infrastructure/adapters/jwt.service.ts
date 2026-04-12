@@ -1,18 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { JwtPayload } from '../../application/DTOs/jwt-payload.type';
 import { ITokenProviderPort } from '../../application/ports/ITokenProvider.port';
 import { IVerifyTokenPort } from '../../application/ports/IVerifyToken.port';
 
+export const JWT_SECRET_TOKEN = Symbol('JWT_SECRET');
+export const JWT_EXPIRES_IN_TOKEN = Symbol('JWT_EXPIRES_IN');
+
 @Injectable()
 export class JwtService implements ITokenProviderPort, IVerifyTokenPort {
-  private readonly secret =
-    process.env.JWT_SECRET ||
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3MTI1ODAwMDAsImV4cCI6MTk5OTk5OTk5OX0.MRBqWo8jM-R9JqrrZI6ShIoDzknxyukQngaNAvQ7m9U';
-  private readonly expiresIn = '2h';
+  constructor(
+    @Inject(JWT_SECRET_TOKEN) private readonly secret: string,
+    @Inject(JWT_EXPIRES_IN_TOKEN) private readonly expiresIn: string,
+  ){}
 
   generateToken(payload: JwtPayload): string {
-    return jwt.sign(payload, this.secret, { expiresIn: this.expiresIn });
+    return jwt.sign(payload, this.secret, { expiresIn: this.expiresIn as jwt.SignOptions['expiresIn'] });
   }
 
   generateRefreshToken(payload: JwtPayload): string {
