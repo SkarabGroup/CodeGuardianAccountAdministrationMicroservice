@@ -1,40 +1,85 @@
-import { Email } from '../value-objects/email.vo'
-import { Password } from '../value-objects/password.vo'
-import { UserId } from '../value-objects/user-id.vo'
-import { Username } from '../value-objects/username.vo'
+import { UserId } from '../value-objects/user-id.vo';
+import { Email } from '../value-objects/email.vo';
+import { PasswordHash } from '../value-objects/password-hash.vo';
+import type { UserDTO } from '../../application/DTOs/user.dto';
 
-export class User{
-    constructor(
-        private readonly id: UserId,
-        private readonly name: Username,
-        private readonly email: Email,
-        private readonly password: Password,
-        private readonly createdAt: Date
-    ){}
+export class User {
+  private readonly _userId: UserId;
+  private readonly _email: Email;
+  private _passwordHash: PasswordHash;
+  private readonly _createdAt: Date;
+  private _updatedAt: Date;
 
-    static create(id:string, name: string, email: string, password: string){
-        return new User(
-            UserId.create(id),
-            Username.create(name),
-            Email.create(email),
-            Password.create(password),
-            new Date()
-        )
-    }
+  private constructor(
+    userId: UserId,
+    email: Email,
+    passwordHash: PasswordHash,
+    createdAt: Date,
+    updatedAt: Date,
+  ) {
+    this._userId = userId;
+    this._email = email;
+    this._passwordHash = passwordHash;
+    this._createdAt = createdAt;
+    this._updatedAt = updatedAt;
+  }
 
-    getId(): UserId{
-        return this.id;
-    }
-    getName(): Username{
-        return this.name;
-    }
-    getEmail(): Email{
-        return this.email;
-    }
-    getPassword(): Password{
-        return this.password;
-    }
-    getCreatedAt(): Date{
-        return this.createdAt;
-    }
+  /* Usato quando si registra un nuovo utente */
+  public static create(
+    id: UserId,
+    email: Email,
+    passwordHash: PasswordHash,
+  ): User {
+    const now = new Date();
+    return new User(id, email, passwordHash, now, now);
+  }
+
+  /* Usato quando viene letto un utente dal database */
+  public static reconstitute(
+    userId: UserId,
+    email: Email,
+    passwordHash: PasswordHash,
+    createdAt: Date,
+    updatedAt: Date,
+  ): User {
+    return new User(userId, email, passwordHash, createdAt, updatedAt);
+  }
+
+  public updatePassword(newPasswordHash: PasswordHash): void {
+    this._passwordHash = newPasswordHash;
+    this._updatedAt = new Date();
+  }
+
+  public getUserId(): UserId {
+    return this._userId;
+  }
+
+  public getEmail(): Email {
+    return this._email;
+  }
+
+  public getPasswordHash(): PasswordHash {
+    return this._passwordHash;
+  }
+
+  public getCreatedAt(): Date {
+    return this._createdAt;
+  }
+
+  public getUpdatedAt(): Date {
+    return this._updatedAt;
+  }
+
+  public equals(other: User): boolean {
+    return other instanceof User && this._userId.equals(other._userId);
+  }
+
+  public toDTO(): UserDTO {
+    return {
+      id: this._userId.value,
+      email: this._email.value,
+      createdAt: this._createdAt.toISOString(),
+      updatedAt: this._updatedAt.toISOString(),
+    };
+  }
 }

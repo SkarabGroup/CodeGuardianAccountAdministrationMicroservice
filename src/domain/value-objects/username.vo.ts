@@ -1,32 +1,33 @@
-import {z} from 'zod'
-const nameSchema = z.string().min(4).max(20).regex(/^[a-zA-Z0-9]+$/)
-export class Username{
-    private readonly value: string;
+export class Username {
+  private readonly _value: string;
 
-    private constructor(username:string){
-        this.isValidName(username);
-        this.value = username;
-    }
+  private constructor(value: string) {
+    this.validate(value);
+    this._value = value;
+  }
 
-    private isValidName(username: string){
-        const result = nameSchema.safeParse(username);
-        if(!result.success){
-            throw new Error("username is not valid!");
-        }
-    }
+  public static create(value: string): Username {
+    return new Username(value);
+  }
 
-    public static create(value:string): Username{
-        if(!value){
-            throw new Error("Unable to create username!");
-        }
-        return new Username(value);
+  private validate(value: string): void {
+    if (!value || value.trim().length === 0) {
+      throw new Error('Username cannot be null, empty, or blank');
     }
-        
-    public equals(other:Username):boolean{
-        return this.value === other.value;
+    if (value.length < 4 || value.length > 20) {
+      throw new Error('Username is not valid');
     }
+    if (!/^[a-zA-Z0-9]+$/.test(value)) {
+      throw new Error('Username is not valid');
+    }
+  }
 
-    public getValue():string{
-        return this.value;
-    }
+  public equals(other: Username): boolean {
+    if (!(other instanceof Username)) return false;
+    return this._value === other._value;
+  }
+
+  public get value(): string {
+    return this._value;
+  }
 }
