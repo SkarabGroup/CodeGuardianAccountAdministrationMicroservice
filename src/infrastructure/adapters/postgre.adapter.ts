@@ -62,15 +62,17 @@ export class PostgresAdapter
 
   async find(email: string): Promise<User | null> {
     const query = `SELECT * FROM users WHERE email = $1`;
-
+    console.log('Executing query:', query, 'with email:', email);
     // 2. Diciamo alla funzione query che restituirà un risultato composto da UserDbRecord
     const { rows } = await this.pool.query<UserDbRecord>(query, [email]);
-
+    console.log('qua?');
+    console.log('rows:', rows);
     if (rows.length === 0) {
       return null;
     }
     const dbRecord = rows[0];
     // 3. Ora TypeScript sa che dbRecord.id è sicuramente una stringa e non si arrabbia più!
+    console.log('pre return ');
     return User.reconstitute(
       UserId.create(dbRecord.id),
       Email.create(dbRecord.email),
