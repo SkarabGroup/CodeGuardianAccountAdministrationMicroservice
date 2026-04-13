@@ -21,9 +21,9 @@ services:
     container_name: nest_app
     ports:
       - "3000:3000"
-    environment:
-      # ORA COMBACIA ALLA PERFEZIONE CON LE CREDENZIALI DEL DB!
-      DATABASE_URL: postgres://root:root@db:5432/miodb
+    # ECCO LA MAGIA: Diciamo a Docker di pescare il .env dalla root!
+    env_file:
+      - ../../.env
     depends_on:
       - db
     volumes:
