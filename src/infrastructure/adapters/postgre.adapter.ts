@@ -99,7 +99,8 @@ export class PostgresAdapter
     const query = `SELECT * FROM users WHERE email = $1`;
 
     const { rows } = await this.pool.query<UserDbRecord>(query, [email]);
-
+    console.log('qua?');
+    console.log('rows:', rows);
     if (rows.length === 0) {
       return null;
     }
