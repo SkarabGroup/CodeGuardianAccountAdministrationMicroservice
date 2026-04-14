@@ -21,6 +21,8 @@ services:
     container_name: nest_app
     ports:
       - "3000:3000"
+    env_file:
+      - ../../.env
     environment:
       # ORA COMBACIA ALLA PERFEZIONE CON LE CREDENZIALI DEL DB!
       DATABASE_URL: postgres://root:root@db:5432/miodb

@@ -20,7 +20,7 @@ import { UpdateUserCommand } from '../../application/commands/update.command';
 import { UPDATE_SERVICE } from '../../application/services/update.service';
 import { JwtService } from '../../infrastructure/adapters/jwt.service'; // Aggiungi questo import
 
-@Controller('auth')
+@Controller('account/auth')
 export class UpdateController {
   constructor(
     @Inject(UPDATE_SERVICE) private readonly updateUseCase: IupdateUseCase,

@@ -15,7 +15,7 @@ import type { IregistrationUseCase } from '../../application/use-cases/registrat
 import { RegistrationUserCommand } from '../../application/commands/registration.command';
 import { REGISTRATION_SERVICE } from '../../application/services/registration.service';
 
-@Controller('auth')
+@Controller('account/auth')
 export class RegistrationController {
   constructor(
     @Inject(REGISTRATION_SERVICE)

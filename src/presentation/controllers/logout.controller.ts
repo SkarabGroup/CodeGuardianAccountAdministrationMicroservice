@@ -12,7 +12,7 @@ import { LogoutCommand } from '../../application/commands/logout.command';
 import { LogoutRequestDto } from '../DTOs/request/logout.dto';
 import { LogoutResponseDto } from '../DTOs/response/logout-response.dto';
 
-@Controller('auth')
+@Controller('account/auth')
 export class LogoutController {
   constructor(
     @Inject(LOGOUT_SERVICE) private readonly logoutUseCase: ILogoutUseCase,

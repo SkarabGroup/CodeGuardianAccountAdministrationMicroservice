@@ -30,7 +30,7 @@ async function bootstrap() {
   // È questo che permette al tuo PostgresAdapter di fare `this.pool.end()`!
   app.enableShutdownHooks();
 
-  await app.listen(config.server.port);
+  await app.listen(config.server.port, '0.0.0.0');
 }
 
 void bootstrap();

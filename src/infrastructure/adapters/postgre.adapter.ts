@@ -1,5 +1,5 @@
-import { Injectable, Inject, Logger, OnModuleInit } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Injectable, Inject } from '@nestjs/common';
+import {  Pool } from 'pg';
 import { randomUUID } from 'crypto';
 import { IUserFindPort } from '../../application/ports/IUserFind.port';
 import { IUserSavePort } from '../../application/ports/IUserSave.port';
@@ -13,8 +13,7 @@ import { IUserDeletePort } from '../../application/ports/IUserDelete.port';
 import { IUserUpdatePort } from '../../application/ports/IUserUpdate.port';
 
 export const POSTGRES_CONNECTION_STRING_TOKEN = Symbol('POSTGRES_CONNECTION_STRING');
-
-// forma dei dati che ci si aspetta dal db
+//forma dei dati che ci si aspetta dal db
 interface UserDbRecord {
   id: string;
   email: string;
@@ -26,7 +25,6 @@ interface UserDbRecord {
 @Injectable()
 export class PostgresAdapter
   implements
-    OnModuleInit,
     IUserFindPort,
     IUserSavePort,
     ISessionSavePort,
@@ -35,7 +33,6 @@ export class PostgresAdapter
     IUserUpdatePort
 {
   private readonly pool: Pool;
-  private readonly logger = new Logger(PostgresAdapter.name);
 
   constructor(@Inject(POSTGRES_CONNECTION_STRING_TOKEN) connectionString: string) {
     this.pool = new Pool({
@@ -43,38 +40,6 @@ export class PostgresAdapter
     });
   }
   
-  // ESEGUITO IN AUTOMATICO DA NESTJS ALL'AVVIO
-  async onModuleInit() {
-    this.logger.log('Verifica e setup delle tabelle del database in corso...');
-    
-    try {
-      const createTablesQuery = `
-        CREATE TABLE IF NOT EXISTS users (
-            id UUID PRIMARY KEY,
-            email VARCHAR(255) UNIQUE NOT NULL,
-            password_hash VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );
-
-        CREATE TABLE IF NOT EXISTS sessions (
-            id UUID PRIMARY KEY,
-            user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            refresh_token VARCHAR(255) NOT NULL,
-            expires_at TIMESTAMP NOT NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        );`;
-      
-      // Eseguiamo entrambe le query in un colpo solo
-      await this.pool.query(createTablesQuery);
-      
-      this.logger.log('Tabelle verificate e pronte all\'uso!');
-    } catch (error) {
-      this.logger.error('Errore critico durante la creazione delle tabelle:', error);
-      throw error; // Blocca l'avvio se il db è irraggiungibile
-    }
-  }
-
   async onModuleDestroy() {
     await this.pool.end();
   }
@@ -97,14 +62,17 @@ export class PostgresAdapter
 
   async find(email: string): Promise<User | null> {
     const query = `SELECT * FROM users WHERE email = $1`;
-
+    console.log('Executing query:', query, 'with email:', email);
+    // 2. Diciamo alla funzione query che restituirà un risultato composto da UserDbRecord
     const { rows } = await this.pool.query<UserDbRecord>(query, [email]);
-
+    console.log('qua?');
+    console.log('rows:', rows);
     if (rows.length === 0) {
       return null;
     }
     const dbRecord = rows[0];
-    
+    // 3. Ora TypeScript sa che dbRecord.id è sicuramente una stringa e non si arrabbia più!
+    console.log('pre return ');
     return User.reconstitute(
       UserId.create(dbRecord.id),
       Email.create(dbRecord.email),

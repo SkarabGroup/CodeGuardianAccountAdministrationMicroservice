@@ -15,7 +15,7 @@ import type { IloginUseCase } from '../../application/use-cases/login.usecase';
 import { LoginCommand } from '../../application/commands/login.command';
 import { LOGIN_SERVICE } from '../../application/services/login.service';
 
-@Controller('auth')
+@Controller('account/auth')
 export class LoginController {
   constructor(
     @Inject(LOGIN_SERVICE)

@@ -66,7 +66,7 @@ describe('Authentication Flow (e2e)', () => {
 
   it('Dovrebbe bloccare una registrazione con password debole (Test ValidationPipe)', async () => {
     const response = await request(server)
-      .post('/auth/register')
+      .post('/account/auth/register')
       .send({ email: 'test@example.com', password: '123' });
 
     expect(response.status).toBe(400);
@@ -79,13 +79,13 @@ describe('Authentication Flow (e2e)', () => {
     };
 
     const registerResponse = await request(server)
-      .post('/auth/register')
+      .post('/account/auth/register')
       .send(userCredentials);
 
     expect(registerResponse.status).toBe(201);
 
     const loginResponse = await request(server)
-      .post('/auth/login')
+      .post('/account/auth/login')
       .send(userCredentials);
 
     expect([200, 201]).toContain(loginResponse.status);
@@ -98,11 +98,11 @@ describe('Authentication Flow (e2e)', () => {
 
   it('Dovrebbe rifiutare il login con password errata', async () => {
     await request(server)
-      .post('/auth/register')
+      .post('/account/auth/register')
       .send({ email: 'wrong@example.com', password: 'StrongPassword123!' });
 
     const loginResponse = await request(server)
-      .post('/auth/login')
+      .post('/account/auth/login')
       .send({ email: 'wrong@example.com', password: 'WrongPassword999!' });
 
     expect([400, 401, 500]).toContain(loginResponse.status);
@@ -111,7 +111,7 @@ describe('Authentication Flow (e2e)', () => {
   // --- I TEST DELL'UPDATE E LOGOUT ---
 
   it('Dovrebbe permettere a un utente di aggiornare la propria password in modo sicuro (UpdateController)', async () => {
-    const registerResponse = await request(server).post('/auth/register').send({
+    const registerResponse = await request(server).post('/account/auth/register').send({
       email: 'update-secure@example.com',
       password: 'OldPassword123!',
     });
@@ -122,7 +122,7 @@ describe('Authentication Flow (e2e)', () => {
     expect(accessToken).toBeDefined();
 
     const updateResponse = await request(server)
-      .patch('/auth/update')
+      .patch('/account/auth/update')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ newPassword: 'NewPassword999!' });
 
@@ -132,7 +132,7 @@ describe('Authentication Flow (e2e)', () => {
     expect(updateBody.accessToken).toBeDefined();
     expect(updateBody.user.email).toBe('update-secure@example.com');
 
-    const loginResponse = await request(server).post('/auth/login').send({
+    const loginResponse = await request(server).post('/account/auth/login').send({
       email: 'update-secure@example.com',
       password: 'NewPassword999!',
     });
@@ -142,18 +142,18 @@ describe('Authentication Flow (e2e)', () => {
 
   it('Dovrebbe eliminare la sessione al momento del logout (LogoutService)', async () => {
     await request(server)
-      .post('/auth/register')
+      .post('/account/auth/register')
       .send({ email: 'logout@example.com', password: 'StrongPassword123!' });
 
     const loginResponse = await request(server)
-      .post('/auth/login')
+      .post('/account/auth/login')
       .send({ email: 'logout@example.com', password: 'StrongPassword123!' });
 
     const loginBody = loginResponse.body as AuthResponseBody;
     const refreshToken = loginBody.refreshToken;
 
     const logoutResponse = await request(server)
-      .post('/auth/logout')
+      .post('/account/auth/logout')
       .send({ refreshToken: refreshToken });
 
     expect([200, 201, 204]).toContain(logoutResponse.status);
@@ -167,7 +167,7 @@ describe('Authentication Flow (e2e)', () => {
 
   it("Dovrebbe eliminare un utente con successo estraendo l'ID dal Token (DeleteUserController)", async () => {
     const registerResponse = await request(server)
-      .post('/auth/register')
+      .post('/account/auth/register')
       .send({ email: 'delete-me@example.com', password: 'StrongPassword123!' });
 
     const registerBody = registerResponse.body as AuthResponseBody;
@@ -176,7 +176,7 @@ describe('Authentication Flow (e2e)', () => {
     expect(accessToken).toBeDefined();
 
     const deleteResponse = await request(server)
-      .delete('/users/me')
+      .delete('/account/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -186,7 +186,7 @@ describe('Authentication Flow (e2e)', () => {
     expect(deleteBody.deleted).toBe(true);
 
     const loginResponse = await request(server)
-      .post('/auth/login')
+      .post('/account/auth/login')
       .send({ email: 'delete-me@example.com', password: 'StrongPassword123!' });
 
     expect([400, 401, 404, 500]).toContain(loginResponse.status);
@@ -197,10 +197,10 @@ describe('Authentication Flow (e2e)', () => {
   it("Dovrebbe impedire la registrazione se l'email è già in uso", async () => {
     const user = { email: 'clone@example.com', password: 'StrongPassword123!' };
 
-    await request(server).post('/auth/register').send(user).expect(201);
+    await request(server).post('/account/auth/register').send(user).expect(201);
 
     const duplicateResponse = await request(server)
-      .post('/auth/register')
+      .post('/account/auth/register')
       .send(user);
 
     expect([400, 409, 500]).toContain(duplicateResponse.status);
@@ -208,14 +208,14 @@ describe('Authentication Flow (e2e)', () => {
 
   it("Dovrebbe rifiutare il login se l'email non esiste nel database", async () => {
     const loginResponse = await request(server)
-      .post('/auth/login')
+      .post('/account/auth/login')
       .send({ email: 'fantasma@example.com', password: 'StrongPassword123!' });
 
     expect([400, 401, 404, 500]).toContain(loginResponse.status);
   });
 
   it("Dovrebbe bloccare l'eliminazione dell'utente se non viene fornito il Token JWT (Sicurezza)", async () => {
-    const deleteResponse = await request(server).delete('/users/me').send();
+    const deleteResponse = await request(server).delete('/account/users/me').send();
 
     expect(deleteResponse.status).toBe(401);
   });

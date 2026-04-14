@@ -14,7 +14,7 @@ import { DeleteResponseDto } from '../DTOs/response/delete-response.dto';
 import { JwtService } from '../../infrastructure/adapters/jwt.service';
 import { DELETE_SERVICE } from '../../application/services/delete.service';
 
-@Controller('users')
+@Controller('account/users')
 export class DeleteUserController {
   constructor(
     @Inject(DELETE_SERVICE) private readonly deleteUseCase: IDeleteUseCase,
