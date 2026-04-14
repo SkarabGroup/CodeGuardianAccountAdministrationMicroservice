@@ -28,7 +28,7 @@ export class RegistrationService implements IregistrationUseCase {
     // 1. check su esistenza utente
     const existingUser = await this.userFindPort.find(command.email);
     if (existingUser) throw new Error('Email already in use');
-
+    
     // 2. hash password
     const hashedPassword = await this.hashPasswordPort.hash(command.password);
 
