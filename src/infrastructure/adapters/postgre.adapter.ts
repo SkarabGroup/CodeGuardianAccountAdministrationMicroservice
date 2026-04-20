@@ -36,7 +36,10 @@ export class PostgresAdapter
 
   constructor(@Inject(POSTGRES_CONNECTION_STRING_TOKEN) connectionString: string) {
     this.pool = new Pool({
-      connectionString: connectionString
+      connectionString: connectionString,
+      ssl: {
+        rejectUnauthorized: false,
+      }
     });
   }
   
